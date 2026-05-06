@@ -1,0 +1,20 @@
+# Secrets — .env contains the real Anthropic API key, never commit it.
+.env
+.env.local
+.env.disabled
+
+# Local-only Claude Code settings (per-user permissions, not shareable)
+.claude/settings.local.json
+
+# Temp files that may be left over from PDF text extraction
+_pdf_text.txt
+_pdf_extract.html
+_case_study.pdf
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/

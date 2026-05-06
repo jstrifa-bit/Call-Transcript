@@ -1,0 +1,82 @@
+[
+  {
+    "id": "GEN-001",
+    "category": "General",
+    "case_types": ["joint", "bariatric"],
+    "finding": "Dental visit > 6 months ago OR pending dental work",
+    "status": "Action Required",
+    "action": "Instruct patient to complete dental clearance before Consultation.",
+    "trigger_concepts": ["dentist", "dental", "teeth", "tooth", "cleaning", "cavity", "filling", "crown", "root canal", "extraction"],
+    "evaluation_question": "Has the patient had a dental visit within the last 6 months, AND do they have no pending dental work?"
+  },
+  {
+    "id": "JNT-001",
+    "category": "Joint",
+    "case_types": ["joint"],
+    "finding": "Active Smoker or quit < 3 months",
+    "status": "Deferred",
+    "action": "Refer to Smoking Cessation education/support; pause case for 3 months.",
+    "trigger_concepts": ["smoke", "smoker", "smoking", "cigarette", "cigar", "vape", "vaping", "tobacco", "nicotine", "pack a day", "quit"],
+    "evaluation_question": "Is the patient a current smoker, or did they quit smoking less than 3 months ago?"
+  },
+  {
+    "id": "JNT-002",
+    "category": "Joint",
+    "case_types": ["joint"],
+    "finding": "No attempt at PT or Exercise",
+    "status": "Ineligible",
+    "action": "Refer to 6-12 week conservative physical therapy trial.",
+    "trigger_concepts": ["physical therapy", "PT", "exercise", "stretching", "rehabilitation", "rehab", "conservative treatment", "tried", "haven't tried"],
+    "evaluation_question": "Has the patient made a meaningful attempt at physical therapy or structured exercise for the joint complaint? A few sessions does NOT count as a meaningful attempt - the SOP requires a real conservative trial."
+  },
+  {
+    "id": "JNT-003",
+    "category": "Joint",
+    "case_types": ["joint"],
+    "finding": "HbA1c > 7.0",
+    "status": "Review",
+    "action": "Flag for Clinical MD Review for glucose optimization.",
+    "trigger_concepts": ["HbA1c", "A1c", "hemoglobin", "diabetes", "diabetic", "blood sugar", "glucose"],
+    "evaluation_question": "Did the patient report a most-recent HbA1c value greater than 7.0?"
+  },
+  {
+    "id": "JNT-004",
+    "category": "Joint",
+    "case_types": ["joint"],
+    "finding": "Daily Opioid use > 3 months",
+    "status": "High Complexity",
+    "action": "Flag for Anesthesia High Risk Consult.",
+    "trigger_concepts": ["opioid", "oxycodone", "oxy", "vicodin", "hydrocodone", "morphine", "fentanyl", "tramadol", "percocet", "pain medication", "pain pills", "narcotic"],
+    "evaluation_question": "Has the patient been using opioid pain medication daily (or near-daily) for more than 3 months?"
+  },
+  {
+    "id": "BAR-001",
+    "category": "Bariatric",
+    "case_types": ["bariatric"],
+    "finding": "History of prior weight-loss surgery",
+    "status": "Revision Case",
+    "action": "Flag as Revision Case; requires specialized surgical review.",
+    "trigger_concepts": ["lap band", "gastric sleeve", "sleeve", "bypass", "gastric bypass", "duodenal switch", "weight-loss surgery", "weight loss surgery", "bariatric", "previous surgery", "prior surgery"],
+    "evaluation_question": "Does the patient have a history of any prior weight-loss / bariatric surgery (band, sleeve, bypass, etc.)?"
+  },
+  {
+    "id": "BAR-002",
+    "category": "Bariatric",
+    "case_types": ["bariatric"],
+    "finding": "No Endoscopy (EGD) in last 3 months",
+    "status": "Action Required",
+    "action": "Instruct patient to schedule EGD after Consultation.",
+    "trigger_concepts": ["endoscopy", "EGD", "esophagogastroduodenoscopy", "scope", "upper GI"],
+    "evaluation_question": "For a bariatric case, has the patient had an endoscopy (EGD) within the last 3 months?"
+  },
+  {
+    "id": "BAR-003",
+    "category": "Bariatric",
+    "case_types": ["bariatric"],
+    "finding": "No Registered Dietician (RD) identified",
+    "status": "Hold",
+    "action": "Provide in-network RD list; patient must confirm RD before referral.",
+    "trigger_concepts": ["dietician", "dietitian", "RD", "nutritionist", "nutrition counseling"],
+    "evaluation_question": "For a bariatric case, has the patient identified a Registered Dietician (RD) they are working with? A one-time visit with a nutritionist does NOT count - the SOP requires an established RD."
+  }
+]

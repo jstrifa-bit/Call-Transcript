@@ -1,0 +1,2427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carrum Health · SOP Recommender</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #04040f;
+      --bg-2:         #0a0c1c;
+      --panel:        rgba(10, 14, 32, 0.72);
+      --panel-solid:  #0c1024;
+      --border:       rgba(0, 212, 255, 0.18);
+      --border-h:     rgba(0, 212, 255, 0.55);
+      --cyan:         #00d4ff;
+      --purple:       #7c3aed;
+      --magenta:      #d946ef;
+      --green:        #10ffa1;
+      --yellow:       #ffd166;
+      --orange:       #ff9550;
+      --red:          #ff5577;
+      --blue:         #5b9bff;
+      --text:         #e6efff;
+      --text-dim:     #8aa0c8;
+      --text-faint:   #5a6b8a;
+      --font:         'Inter', system-ui, -apple-system, sans-serif;
+      --mono:         'JetBrains Mono', ui-monospace, Menlo, monospace;
+      --ease:         0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.55;
+    }
+
+    body {
+      background:
+        radial-gradient(1100px 700px at 8% -10%, rgba(0, 212, 255, 0.10), transparent 60%),
+        radial-gradient(900px 600px at 100% 0%, rgba(124, 58, 237, 0.10), transparent 60%),
+        radial-gradient(800px 500px at 50% 110%, rgba(217, 70, 239, 0.06), transparent 60%),
+        var(--bg);
+      min-height: 100vh;
+    }
+
+    .shell { max-width: 1240px; margin: 0 auto; padding: 32px 28px 96px; }
+
+    /* HEADER */
+    header.app-header {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 24px; margin-bottom: 28px;
+    }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand-mark {
+      width: 42px; height: 42px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      display: grid; place-items: center;
+      box-shadow: 0 0 32px rgba(0, 212, 255, 0.35);
+    }
+    .brand-mark svg { width: 22px; height: 22px; color: #04040f; }
+    .brand-text h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+    .brand-text p {
+      font-size: 12px; color: var(--text-dim);
+      letter-spacing: 0.04em; text-transform: uppercase;
+    }
+
+    .header-actions { display: flex; gap: 10px; align-items: center; }
+    .badge-mode {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--mono); font-size: 10.5px;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border);
+    }
+    .badge-mode.ai { color: var(--magenta); border-color: rgba(217, 70, 239, 0.35); }
+    .badge-mode.local { color: var(--green); border-color: rgba(16, 255, 161, 0.30); }
+    .badge-mode .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 6px currentColor;
+    }
+
+    /* LAYOUT */
+    .grid { display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
+    @media (max-width: 1024px) { .grid { grid-template-columns: 1fr; } }
+
+    .panel {
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+    }
+    .panel + .panel { margin-top: 20px; }
+
+    .panel-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; margin-bottom: 14px;
+    }
+    .panel-title {
+      font-size: 13px; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-dim);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .panel-title::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--cyan); box-shadow: 0 0 10px var(--cyan);
+    }
+
+    /* INPUT */
+    textarea.transcript {
+      width: 100%; min-height: 280px; max-height: 480px; resize: vertical;
+      background: rgba(4, 6, 18, 0.6);
+      border: 1px solid var(--border); border-radius: 10px;
+      color: var(--text); font-family: var(--mono); font-size: 13px;
+      padding: 14px; line-height: 1.6;
+      transition: border-color var(--ease);
+    }
+    textarea.transcript:focus {
+      outline: none; border-color: var(--border-h);
+      box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.08);
+    }
+    textarea.transcript::placeholder { color: var(--text-faint); }
+
+    .input-toolbar { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 16px; border-radius: 10px;
+      font-family: var(--font); font-size: 13px; font-weight: 600;
+      cursor: pointer; border: 1px solid var(--border);
+      background: var(--panel); color: var(--text);
+      transition: all var(--ease);
+    }
+    .btn:hover { border-color: var(--border-h); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn svg { width: 15px; height: 15px; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      color: #04040f; border: none; padding: 11px 20px;
+      box-shadow: 0 6px 24px rgba(0, 212, 255, 0.22);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 32px rgba(0, 212, 255, 0.32);
+    }
+    .btn-primary:disabled { opacity: 0.5; transform: none; box-shadow: none; }
+    .btn-ghost { background: transparent; }
+
+    .file-input { display: none; }
+
+    .hint { margin-top: 10px; font-size: 11.5px; color: var(--text-faint); }
+
+    /* PATIENT LOOKUP FORM */
+    .lookup-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto auto;
+      gap: 10px;
+      align-items: end;
+    }
+    @media (max-width: 700px) {
+      .lookup-form { grid-template-columns: 1fr; }
+    }
+    .lookup-field { display: flex; flex-direction: column; gap: 4px; }
+    .lookup-field label {
+      font-size: 11px; color: var(--text-dim);
+      letter-spacing: 0.06em; text-transform: uppercase;
+      font-weight: 600;
+    }
+    .lookup-field input {
+      background: rgba(4, 6, 18, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--mono); font-size: 13px;
+      padding: 9px 12px;
+      transition: border-color var(--ease);
+    }
+    .lookup-field input:focus {
+      outline: none;
+      border-color: var(--border-h);
+      box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.08);
+    }
+    .lookup-field input::placeholder { color: var(--text-faint); }
+    .lookup-field input:disabled {
+      opacity: 0.55; cursor: not-allowed;
+      background: rgba(4, 6, 18, 0.3);
+    }
+    .lookup-form .btn-primary { padding: 9px 18px; }
+
+    .email-notice {
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: rgba(124, 58, 237, 0.08);
+      border: 1px solid rgba(124, 58, 237, 0.32);
+      border-radius: 8px;
+      font-size: 12px; color: var(--text);
+      animation: fadeUp 0.3s var(--ease) both;
+    }
+    .email-notice svg { width: 14px; height: 14px; color: var(--purple); flex-shrink: 0; }
+    .email-notice-undo {
+      margin-left: auto;
+      background: transparent;
+      border: 1px solid rgba(124, 58, 237, 0.4);
+      color: #b794f4;
+      font-size: 11px; font-weight: 600;
+      padding: 3px 10px; border-radius: 6px;
+      cursor: pointer;
+    }
+    .email-notice-undo:hover { background: rgba(124, 58, 237, 0.15); }
+    .hint code {
+      font-family: var(--mono); font-size: 11px;
+      padding: 1px 6px; background: rgba(0, 212, 255, 0.08);
+      border-radius: 4px; color: var(--cyan);
+    }
+
+    .sample-menu {
+      position: relative; display: inline-block;
+    }
+    .sample-dropdown {
+      position: absolute; top: calc(100% + 6px); left: 0;
+      min-width: 240px;
+      background: var(--panel-solid);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 6px;
+      z-index: 10;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+      display: none;
+    }
+    .sample-dropdown.open { display: block; }
+    .sample-dropdown button {
+      display: block; width: 100%; text-align: left;
+      background: transparent; border: 0;
+      color: var(--text); font-family: var(--font); font-size: 12.5px;
+      padding: 8px 12px; border-radius: 6px; cursor: pointer;
+    }
+    .sample-dropdown button:hover { background: rgba(0, 212, 255, 0.10); }
+    .sample-dropdown small { color: var(--text-dim); font-size: 10.5px; }
+
+    /* THINKING */
+    .thinking-stage {
+      position: relative; height: 320px;
+      display: grid; place-items: center; overflow: hidden;
+      border-radius: 12px;
+      background:
+        radial-gradient(600px 300px at 50% 50%, rgba(0, 212, 255, 0.08), transparent 70%),
+        rgba(4, 6, 18, 0.4);
+      border: 1px solid var(--border);
+    }
+    .nn-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .nn-svg .link { stroke: rgba(0, 212, 255, 0.18); stroke-width: 1; fill: none; }
+    .nn-svg .link-active {
+      stroke: var(--cyan); stroke-width: 1.5;
+      filter: drop-shadow(0 0 4px rgba(0, 212, 255, 0.7));
+    }
+    .nn-svg circle.node {
+      fill: var(--bg-2); stroke: rgba(0, 212, 255, 0.5); stroke-width: 1.5;
+    }
+    .nn-svg circle.node.pulse { fill: var(--cyan); filter: drop-shadow(0 0 8px var(--cyan)); }
+    .nn-svg circle.node.purple { stroke: rgba(124, 58, 237, 0.6); }
+    .nn-svg circle.node.purple.pulse { fill: var(--purple); filter: drop-shadow(0 0 10px var(--purple)); }
+
+    .thinking-overlay { position: relative; z-index: 2; text-align: center; pointer-events: none; }
+    .thinking-status {
+      font-family: var(--mono); font-size: 12px;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--cyan); margin-top: 16px;
+    }
+    .thinking-substatus {
+      font-size: 11px; color: var(--text-dim);
+      margin-top: 6px; letter-spacing: 0.06em;
+    }
+
+    /* RESULTS */
+    .results { animation: fadeUp 0.45s var(--ease) both; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Side-by-side row for Patient Summary + Recommendation */
+    .results-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: stretch;
+      margin-bottom: 16px;
+    }
+    .results-row .row-col { margin: 0; height: 100%; }
+    @media (max-width: 820px) {
+      .results-row { grid-template-columns: 1fr; }
+    }
+
+    .disposition-banner {
+      background: linear-gradient(135deg, rgba(0, 212, 255, 0.10), rgba(124, 58, 237, 0.08));
+      border: 1px solid var(--border-h);
+      border-radius: 12px; padding: 18px 22px;
+      display: flex; flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px; position: relative; overflow: hidden;
+    }
+    .disposition-meta {
+      display: flex; gap: 8px; flex-wrap: wrap;
+    }
+    .disposition-banner::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--cyan), var(--purple), var(--magenta));
+    }
+    .disposition-left { display: flex; flex-direction: column; gap: 4px; }
+    .disposition-eyebrow {
+      font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--text-dim); font-weight: 600;
+    }
+    .disposition-status {
+      font-size: 24px; font-weight: 700; letter-spacing: -0.015em;
+    }
+    .disposition-summary {
+      font-size: 13.5px; color: var(--text); margin-top: 8px;
+      max-width: 100%; line-height: 1.55;
+    }
+
+    /* status colors — per SOP_RULES STATUS_COLORS */
+    .status-Ineligible       { color: var(--red); }
+    .status-Deferred         { color: var(--orange); }
+    .status-HighComplexity   { color: var(--orange); }
+    .status-Review           { color: var(--yellow); }
+    .status-RevisionCase     { color: var(--yellow); }
+    .status-Hold             { color: var(--blue); }
+    .status-ActionRequired   { color: var(--blue); }
+    .status-Cleared          { color: var(--green); }
+
+    /* CRM Card */
+    .crm-card {
+      background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(0, 212, 255, 0.06));
+      border: 1px solid rgba(124, 58, 237, 0.32);
+      border-radius: 14px;
+      padding: 18px 20px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .crm-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--purple), var(--cyan));
+    }
+    .crm-card-empty {
+      background: rgba(4, 6, 18, 0.4);
+      border-color: var(--border);
+    }
+    .crm-card-empty::before { background: var(--text-faint); }
+    .crm-head {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 10px; margin-bottom: 14px;
+    }
+    .crm-eyebrow {
+      font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: #b794f4; font-weight: 600;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .crm-eyebrow::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--purple); box-shadow: 0 0 8px var(--purple);
+    }
+    .crm-mock {
+      font-family: var(--mono); font-size: 10px;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 3px 8px; border-radius: 6px;
+      border: 1px dashed rgba(255, 209, 102, 0.4);
+      background: rgba(255, 209, 102, 0.04);
+    }
+    .crm-id-row {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 14px;
+    }
+    .crm-avatar {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--purple), var(--cyan));
+      color: #04040f;
+      font-family: var(--font); font-size: 16px; font-weight: 700;
+      letter-spacing: 0.04em;
+      display: grid; place-items: center;
+      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.32);
+    }
+    .crm-name {
+      font-size: 17px; font-weight: 700; color: var(--text);
+      letter-spacing: -0.01em; line-height: 1.2;
+    }
+    .crm-pid {
+      font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+      margin-top: 2px;
+    }
+    .crm-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: rgba(0, 212, 255, 0.10);
+      border: 1px solid rgba(0, 212, 255, 0.18);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    @media (max-width: 600px) {
+      .crm-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .crm-field {
+      background: var(--panel-solid);
+      padding: 10px 12px;
+    }
+    .crm-field-label {
+      font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text-dim); font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .crm-field-value {
+      font-size: 13.5px; color: var(--text); font-weight: 500;
+      line-height: 1.35;
+    }
+    .crm-match-note {
+      margin-top: 10px;
+      font-size: 11px; color: var(--text-faint); font-style: italic;
+    }
+    .crm-no-match {
+      font-size: 13px; color: var(--text-dim); line-height: 1.5;
+    }
+
+    /* CONNECTING TO CRM (5s after OK click) */
+    .crm-connecting {
+      display: flex; flex-direction: column; gap: 18px;
+      padding: 6px 4px;
+      animation: fadeUp 0.3s var(--ease) both;
+    }
+    .crm-connecting-head {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      text-align: center;
+    }
+    .crm-spinner { display: inline-flex; gap: 6px; margin-bottom: 4px; }
+    .crm-spin-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+      animation: spinDot 1.2s ease-in-out infinite;
+    }
+    .crm-spin-dot:nth-child(2) { animation-delay: 0.18s; background: var(--purple); box-shadow: 0 0 8px var(--purple); }
+    .crm-spin-dot:nth-child(3) { animation-delay: 0.36s; background: var(--magenta); box-shadow: 0 0 8px var(--magenta); }
+    @keyframes spinDot {
+      0%, 80%, 100% { opacity: 0.25; transform: scale(0.7); }
+      40% { opacity: 1; transform: scale(1); }
+    }
+    .crm-connecting-title {
+      font-size: 16px; font-weight: 700; color: var(--text);
+      letter-spacing: -0.01em;
+    }
+    .crm-connecting-sub {
+      font-size: 12px; color: var(--text-dim);
+      max-width: 380px;
+    }
+    .crm-connecting-steps {
+      display: flex; flex-direction: column; gap: 6px;
+      max-width: 420px; margin: 0 auto; width: 100%;
+    }
+    .crm-step {
+      display: flex; align-items: center; gap: 12px;
+      padding: 9px 14px;
+      background: rgba(4, 6, 18, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 12.5px; color: var(--text-faint);
+      transition: all var(--ease);
+    }
+    .crm-step-icon {
+      width: 14px; height: 14px;
+      border: 1.5px solid var(--text-faint);
+      border-radius: 50%;
+      flex-shrink: 0; position: relative;
+      transition: all var(--ease);
+    }
+    .crm-step.crm-step-running {
+      border-color: rgba(0, 212, 255, 0.45);
+      color: var(--text);
+      background: rgba(0, 212, 255, 0.04);
+    }
+    .crm-step-running .crm-step-icon {
+      border-color: var(--cyan);
+      border-top-color: transparent;
+      animation: spinIcon 0.7s linear infinite;
+    }
+    @keyframes spinIcon { to { transform: rotate(360deg); } }
+    .crm-step.crm-step-done {
+      border-color: rgba(16, 255, 161, 0.32);
+      color: var(--text);
+      background: rgba(16, 255, 161, 0.04);
+    }
+    .crm-step-done .crm-step-icon {
+      background: rgba(16, 255, 161, 0.20);
+      border-color: var(--green);
+    }
+    .crm-step-done .crm-step-icon::after {
+      content: ''; position: absolute;
+      left: 2.5px; top: 4.5px;
+      width: 7px; height: 3.5px;
+      border-left: 1.5px solid var(--green);
+      border-bottom: 1.5px solid var(--green);
+      transform: rotate(-45deg);
+    }
+
+    .summary-card {
+      background: rgba(4, 6, 18, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 18px;
+      margin-bottom: 16px;
+    }
+    .summary-head {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 10px; margin-bottom: 10px;
+    }
+    .summary-eyebrow {
+      font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--text-dim); font-weight: 600;
+    }
+    .category-pill {
+      display: inline-flex; padding: 3px 10px; border-radius: 20px;
+      font-family: var(--mono); font-size: 10.5px;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      background: rgba(124, 58, 237, 0.12);
+      border: 1px solid rgba(124, 58, 237, 0.4);
+      color: #b794f4;
+    }
+    .category-pill.Joint { background: rgba(0, 212, 255, 0.10); border-color: rgba(0, 212, 255, 0.35); color: var(--cyan); }
+    .category-pill.Bariatric { background: rgba(217, 70, 239, 0.10); border-color: rgba(217, 70, 239, 0.35); color: var(--magenta); }
+    .category-pill.General { background: rgba(255, 209, 102, 0.08); border-color: rgba(255, 209, 102, 0.30); color: var(--yellow); }
+
+    .demographics {
+      font-size: 14.5px; font-weight: 600; color: var(--text); margin-bottom: 8px;
+    }
+    .key-facts { list-style: none; padding: 0; margin: 0; }
+    .key-facts li {
+      padding: 6px 0 6px 22px; position: relative;
+      font-size: 13.5px; color: var(--text);
+      border-bottom: 1px solid rgba(0, 212, 255, 0.06);
+    }
+    .key-facts li:last-child { border-bottom: 0; }
+    .key-facts li::before {
+      content: ''; position: absolute; left: 6px; top: 14px;
+      width: 5px; height: 5px; border-radius: 50%; background: var(--cyan);
+      box-shadow: 0 0 6px var(--cyan);
+    }
+    .summary-note {
+      font-size: 11.5px; color: var(--text-faint); margin-top: 10px; font-style: italic;
+    }
+
+    /* NEXT STEPS */
+    .next-steps-card {
+      background: linear-gradient(135deg, rgba(16, 255, 161, 0.05), rgba(0, 212, 255, 0.05));
+      border: 1px solid rgba(16, 255, 161, 0.30);
+      border-radius: 12px;
+      padding: 16px 20px 18px;
+      margin-top: 16px;
+      margin-bottom: 18px;
+      position: relative;
+    }
+    .next-steps-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--green), var(--cyan));
+      border-radius: 12px 12px 0 0;
+    }
+    .next-steps-head {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 12px;
+    }
+    .next-steps-eyebrow {
+      font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--green); font-weight: 600;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .next-steps-eyebrow::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green); box-shadow: 0 0 8px var(--green);
+    }
+    .next-steps-count {
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text-dim);
+      padding: 3px 9px; border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .next-steps-list {
+      list-style: none; padding: 0; margin: 0;
+      counter-reset: ns;
+    }
+    .next-steps-list li {
+      counter-increment: ns;
+      position: relative;
+      padding: 12px 0 14px 38px;
+      font-size: 13.5px; color: var(--text); line-height: 1.55;
+      border-bottom: 1px dashed rgba(16, 255, 161, 0.12);
+      transition: opacity var(--ease);
+    }
+    .next-steps-list li:last-child { border-bottom: 0; }
+    .next-steps-list li::before {
+      content: counter(ns);
+      position: absolute; left: 0; top: 12px;
+      width: 26px; height: 26px;
+      display: grid; place-items: center;
+      font-family: var(--mono); font-size: 11px; font-weight: 600;
+      color: var(--green);
+      background: rgba(16, 255, 161, 0.10);
+      border: 1px solid rgba(16, 255, 161, 0.40);
+      border-radius: 50%;
+    }
+    .ns-text { margin-bottom: 8px; }
+    .ns-tag {
+      display: inline-block;
+      font-family: var(--mono); font-size: 10.5px; font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--cyan);
+      background: rgba(0, 212, 255, 0.08);
+      border: 1px solid rgba(0, 212, 255, 0.30);
+      padding: 1px 7px; border-radius: 5px;
+      margin-right: 4px;
+    }
+    .ns-controls {
+      display: flex; align-items: center; gap: 12px;
+      flex-wrap: wrap;
+    }
+    .ns-review {
+      display: inline-flex; gap: 2px;
+      background: rgba(0, 212, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2px;
+    }
+    .ns-thumb {
+      background: transparent; border: 0;
+      width: 32px; height: 28px;
+      display: grid; place-items: center;
+      font-size: 16px; line-height: 1;
+      cursor: pointer;
+      border-radius: 6px;
+      filter: grayscale(0.7) opacity(0.55);
+      transition: all var(--ease);
+    }
+    .ns-thumb:hover:not(:disabled) {
+      filter: grayscale(0) opacity(1);
+      background: rgba(255, 255, 255, 0.04);
+      transform: scale(1.1);
+    }
+    .ns-thumb:disabled { cursor: default; }
+    .ns-thumb-up.selected {
+      filter: none;
+      background: rgba(16, 255, 161, 0.16);
+      box-shadow: inset 0 0 0 1px rgba(16, 255, 161, 0.45);
+    }
+    .ns-thumb-down.selected {
+      filter: none;
+      background: rgba(255, 85, 119, 0.16);
+      box-shadow: inset 0 0 0 1px rgba(255, 85, 119, 0.45);
+    }
+    .ns-flag-note {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11.5px; font-weight: 600;
+      color: var(--red);
+      padding: 4px 10px;
+      background: rgba(255, 85, 119, 0.08);
+      border: 1px solid rgba(255, 85, 119, 0.32);
+      border-radius: 8px;
+      letter-spacing: 0.02em;
+    }
+    .ns-flag-note svg { width: 12px; height: 12px; }
+
+    .ns-cta {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--font); font-size: 12px; font-weight: 600;
+      color: var(--cyan);
+      background: rgba(0, 212, 255, 0.06);
+      border: 1px solid rgba(0, 212, 255, 0.32);
+      border-radius: 8px;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: all var(--ease);
+      letter-spacing: 0.01em;
+    }
+    .ns-cta:hover:not(:disabled) {
+      background: rgba(0, 212, 255, 0.14);
+      border-color: rgba(0, 212, 255, 0.60);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(0, 212, 255, 0.18);
+    }
+    .ns-cta svg { width: 13px; height: 13px; }
+    .ns-cta-locked {
+      color: var(--text-faint);
+      background: rgba(255, 255, 255, 0.02);
+      border-color: var(--border);
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    .ns-cta-locked:hover { transform: none; box-shadow: none; }
+    .ns-cta-done {
+      color: var(--green);
+      background: rgba(16, 255, 161, 0.10);
+      border-color: rgba(16, 255, 161, 0.45);
+      cursor: default;
+      opacity: 1;
+    }
+    .ns-cta-done:hover { transform: none; box-shadow: none; }
+
+    li[data-step-state="flagged"] .ns-text { opacity: 0.65; text-decoration: line-through; text-decoration-color: rgba(255, 85, 119, 0.35); }
+    li[data-step-state="actioned"] { opacity: 0.6; }
+    li[data-step-state="queued"]   { background: rgba(124, 58, 237, 0.04); border-radius: 6px; }
+
+    .ns-pf-tag {
+      display: inline-block;
+      margin-left: 8px;
+      font-family: var(--mono); font-size: 10px; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: lowercase;
+      color: #b794f4;
+      background: rgba(124, 58, 237, 0.10);
+      border: 1px solid rgba(124, 58, 237, 0.30);
+      padding: 1px 6px; border-radius: 5px;
+      vertical-align: middle;
+    }
+    .ns-cta-queued {
+      color: var(--purple);
+      background: rgba(124, 58, 237, 0.10);
+      border-color: rgba(124, 58, 237, 0.45);
+      cursor: default;
+      opacity: 1;
+    }
+    .ns-cta-queued:hover { transform: none; box-shadow: none; }
+
+    .ns-batch-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 14px; flex-wrap: wrap;
+      margin-top: 14px; padding: 12px 14px;
+      background: rgba(124, 58, 237, 0.08);
+      border: 1px dashed rgba(124, 58, 237, 0.40);
+      border-radius: 10px;
+    }
+    .ns-batch-info {
+      font-size: 12.5px; color: var(--text); font-weight: 500;
+    }
+    .ns-batch-cta {
+      background: linear-gradient(135deg, var(--purple), var(--magenta));
+      color: #04040f;
+      border: 0;
+      padding: 9px 16px; font-size: 12.5px; font-weight: 700;
+      letter-spacing: 0.02em;
+      box-shadow: 0 6px 20px rgba(124, 58, 237, 0.28);
+    }
+    .ns-batch-cta:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 28px rgba(124, 58, 237, 0.40);
+    }
+    .ns-batch-cta:disabled {
+      background: rgba(124, 58, 237, 0.12);
+      color: var(--text-faint);
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+    .ns-batch-cta svg { width: 14px; height: 14px; }
+
+    /* DRAFT PATIENT EMAIL */
+    .email-draft-panel {
+      margin-top: 20px;
+      animation: fadeUp 0.45s var(--ease) both;
+      border-color: rgba(255, 209, 102, 0.32);
+      background: linear-gradient(135deg, rgba(255, 209, 102, 0.05), rgba(0, 212, 255, 0.04));
+    }
+    .email-meta {
+      display: flex; flex-direction: column; gap: 6px;
+      margin-bottom: 12px;
+      padding: 12px 14px;
+      background: rgba(4, 6, 18, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: var(--mono); font-size: 12.5px;
+    }
+    .email-meta-row { display: flex; gap: 14px; }
+    .email-meta-label {
+      width: 64px; flex-shrink: 0;
+      color: var(--text-dim); font-weight: 600;
+      letter-spacing: 0.04em; text-transform: uppercase; font-size: 10px;
+      align-self: center;
+    }
+    .email-meta-value { color: var(--text); }
+    .email-body {
+      width: 100%;
+      min-height: 260px; max-height: 480px;
+      resize: vertical;
+      background: rgba(4, 6, 18, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: var(--font); font-size: 13.5px;
+      line-height: 1.55; padding: 14px 16px;
+    }
+    .email-body:focus {
+      outline: none;
+      border-color: var(--border-h);
+      box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.08);
+    }
+    .email-actions {
+      display: flex; gap: 10px; margin-top: 12px;
+      justify-content: flex-end;
+    }
+    .ns-disclaimer {
+      margin-top: 14px; padding-top: 10px;
+      border-top: 1px dashed rgba(16, 255, 161, 0.18);
+      font-size: 11px; color: var(--text-faint); font-style: italic;
+    }
+
+    .findings-head {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 12px;
+    }
+    .findings-head h2 {
+      font-size: 13px; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-dim);
+    }
+    .findings-count {
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text-dim);
+      padding: 3px 9px; border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .finding {
+      background: rgba(4, 6, 18, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-bottom: 10px;
+      border-left: 3px solid var(--cyan);
+    }
+    .finding[data-status="Ineligible"]            { border-left-color: var(--red); }
+    .finding[data-status="Deferred"]              { border-left-color: var(--orange); }
+    .finding[data-status="High Complexity"]       { border-left-color: var(--orange); }
+    .finding[data-status="Review"]                { border-left-color: var(--yellow); }
+    .finding[data-status="Revision Case"]         { border-left-color: var(--yellow); }
+    .finding[data-status="Hold"]                  { border-left-color: var(--blue); }
+    .finding[data-status="Action Required"]       { border-left-color: var(--blue); }
+
+    .finding-head {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 10px; flex-wrap: wrap; margin-bottom: 8px;
+    }
+    .finding-id {
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text-dim); letter-spacing: 0.06em;
+    }
+    .finding-title {
+      font-size: 15px; font-weight: 600; color: var(--text);
+      letter-spacing: -0.01em; line-height: 1.35;
+    }
+    .finding-meta {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;
+    }
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 600;
+      border: 1px solid var(--border); color: var(--text-dim);
+      letter-spacing: 0.04em;
+    }
+    .pill.status-Ineligible            { color: var(--red); border-color: rgba(255, 85, 119, 0.4); background: rgba(255, 85, 119, 0.06); }
+    .pill.status-Deferred              { color: var(--orange); border-color: rgba(255, 149, 80, 0.4); background: rgba(255, 149, 80, 0.06); }
+    .pill.status-HighComplexity        { color: var(--orange); border-color: rgba(255, 149, 80, 0.4); background: rgba(255, 149, 80, 0.06); }
+    .pill.status-Review                { color: var(--yellow); border-color: rgba(255, 209, 102, 0.4); background: rgba(255, 209, 102, 0.06); }
+    .pill.status-RevisionCase          { color: var(--yellow); border-color: rgba(255, 209, 102, 0.4); background: rgba(255, 209, 102, 0.06); }
+    .pill.status-Hold                  { color: var(--blue); border-color: rgba(91, 155, 255, 0.4); background: rgba(91, 155, 255, 0.06); }
+    .pill.status-ActionRequired        { color: var(--blue); border-color: rgba(91, 155, 255, 0.4); background: rgba(91, 155, 255, 0.06); }
+
+    .pill.confidence-High   { color: var(--green); border-color: rgba(16, 255, 161, 0.35); background: rgba(16, 255, 161, 0.05); }
+    .pill.confidence-Medium { color: var(--yellow); border-color: rgba(255, 209, 102, 0.30); background: rgba(255, 209, 102, 0.05); }
+    .pill.confidence-Low    { color: var(--text-dim); border-color: var(--border); background: transparent; }
+
+    .finding-action {
+      background: rgba(0, 212, 255, 0.06);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 13.5px; color: var(--text); line-height: 1.5;
+      margin-bottom: 8px;
+    }
+    .finding-action strong { color: var(--cyan); font-weight: 600; }
+
+    .finding-evidence {
+      font-size: 12.5px; color: var(--text-dim);
+      padding: 8px 10px;
+      border-left: 2px solid rgba(124, 58, 237, 0.5);
+      background: rgba(124, 58, 237, 0.04);
+      border-radius: 0 6px 6px 0;
+      font-style: italic;
+    }
+    .finding-evidence strong { color: var(--text); font-style: normal; font-weight: 600; }
+
+    .empty-findings {
+      padding: 28px 22px; text-align: center;
+      background: rgba(16, 255, 161, 0.04);
+      border: 1px solid rgba(16, 255, 161, 0.25);
+      border-radius: 12px;
+    }
+    .empty-findings .icon {
+      width: 40px; height: 40px; margin: 0 auto 10px;
+      background: rgba(16, 255, 161, 0.12); border-radius: 50%;
+      display: grid; place-items: center;
+    }
+    .empty-findings .icon svg { width: 22px; height: 22px; color: var(--green); }
+    .empty-findings h3 {
+      font-size: 14px; color: var(--green); font-weight: 600;
+      letter-spacing: 0.04em; margin-bottom: 4px;
+    }
+    .empty-findings p { font-size: 13px; color: var(--text-dim); }
+
+    /* SOP REFERENCE SIDEBAR */
+    .sop-list {
+      display: flex; flex-direction: column; gap: 8px;
+      max-height: 620px; overflow-y: auto; padding-right: 4px;
+    }
+    .sop-list::-webkit-scrollbar { width: 6px; }
+    .sop-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    .sop-ref {
+      padding: 12px 14px;
+      border: 1px solid var(--border); border-radius: 10px;
+      background: rgba(4, 6, 18, 0.4);
+      transition: border-color var(--ease);
+    }
+    .sop-ref:hover { border-color: var(--border-h); }
+    .sop-ref.triggered {
+      border-color: var(--border-h);
+      background: rgba(0, 212, 255, 0.06);
+    }
+    .sop-ref-head {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 8px; margin-bottom: 4px;
+    }
+    .sop-ref-name { font-weight: 600; font-size: 13px; color: var(--text); }
+    .sop-ref-id { font-family: var(--mono); font-size: 10px; color: var(--text-faint); }
+    .sop-ref-finding { font-size: 11.5px; color: var(--text-dim); margin-bottom: 6px; line-height: 1.4; }
+    .sop-ref-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--panel-solid);
+      border: 1px solid var(--border-h);
+      border-radius: 10px; padding: 12px 18px;
+      font-size: 13px; color: var(--text);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+      opacity: 0; pointer-events: none;
+      transition: all var(--ease); z-index: 60;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.error { border-color: rgba(255, 85, 119, 0.5); color: var(--red); }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v4"/><path d="M12 18v4"/>
+            <path d="m4.93 4.93 2.83 2.83"/><path d="m16.24 16.24 2.83 2.83"/>
+            <path d="M2 12h4"/><path d="M18 12h4"/>
+            <path d="m4.93 19.07 2.83-2.83"/><path d="m16.24 7.76 2.83-2.83"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>Carrum SOP Recommender</h1>
+          <p>Care Team · Protocol-Driven Patient Routing</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <span id="modeBadge" class="badge-mode local"><span class="dot"></span><span id="modeBadgeText">connecting…</span></span>
+      </div>
+    </header>
+
+    <div class="grid">
+      <main>
+        <!-- Step 1: Patient Lookup (required before analysis) -->
+        <section class="panel" id="lookupPanel">
+          <div class="panel-head">
+            <div class="panel-title">1 · Patient Lookup</div>
+            <span class="hint" style="margin:0;">Required before analysis</span>
+          </div>
+          <div class="lookup-form">
+            <div class="lookup-field">
+              <label for="patientNameInput">Patient Name</label>
+              <input id="patientNameInput" type="text" autocomplete="off" placeholder="e.g. Sarah Thompson">
+            </div>
+            <div class="lookup-field">
+              <label for="patientIdInput">Patient ID</label>
+              <input id="patientIdInput" type="text" autocomplete="off" placeholder="e.g. P-10481">
+            </div>
+            <button class="btn btn-primary" id="lookupBtn" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              OK
+            </button>
+            <button class="btn btn-ghost" id="lookupResetBtn" type="button" hidden>Change patient</button>
+          </div>
+          <p class="hint" id="lookupHint">Enter the patient's name and Carrum Patient ID to load their CRM profile.</p>
+        </section>
+
+        <!-- Persistent CRM card (shown after lookup) -->
+        <section class="panel" id="crmPanel" hidden>
+          <div id="crmContent"></div>
+        </section>
+
+        <!-- Step 2: Transcript -->
+        <section class="panel">
+          <div class="panel-head">
+            <div class="panel-title">2 · Transcript</div>
+            <span id="charCount" class="hint" style="margin:0;">0 chars</span>
+          </div>
+          <textarea
+            id="transcriptInput"
+            class="transcript"
+            placeholder="Paste the conversation between Carrum Care Team and patient here.
+
+Example:
+Care Team: Hi Sarah, I'd like to verify a few details from your pre-consultation profile…
+Sarah T: Sure, what do you need?"></textarea>
+
+          <div class="input-toolbar">
+            <button class="btn btn-primary" id="analyzeBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              Analyze Transcript
+            </button>
+            <button class="btn" id="uploadBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Upload .txt
+            </button>
+            <input type="file" id="fileInput" class="file-input" accept=".txt,.eml,text/plain,message/rfc822">
+            <div class="sample-menu">
+              <button class="btn btn-ghost" id="sampleBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Load Sample ▾
+              </button>
+              <div class="sample-dropdown" id="sampleDropdown">
+                <button data-sample="sarah">Sarah T <small>· bariatric revision</small></button>
+                <button data-sample="bob">Bob L <small>· hip pain, opioid use</small></button>
+                <button data-sample="maria">Maria V <small>· knee, smoker, A1c 7.4</small></button>
+              </div>
+            </div>
+            <button class="btn btn-ghost" id="clearBtn" style="margin-left:auto;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+              Clear
+            </button>
+          </div>
+          <p class="hint">Paste, drop a <code>.txt</code> or <code>.eml</code> (forwarded emails are auto-cleaned), or load one of the case-study sample transcripts.</p>
+          <div id="emailNotice" class="email-notice" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <span id="emailNoticeText">Email content detected — extracted conversation body.</span>
+            <button class="email-notice-undo" id="emailNoticeUndo" type="button">Undo</button>
+          </div>
+        </section>
+
+        <!-- Thinking -->
+        <section class="panel" id="thinkingPanel" hidden>
+          <div class="panel-head">
+            <div class="panel-title">Reasoning</div>
+            <span id="elapsed" class="hint" style="margin:0;">0.0s</span>
+          </div>
+          <div class="thinking-stage">
+            <svg class="nn-svg" id="nnSvg" viewBox="0 0 800 320" preserveAspectRatio="xMidYMid meet"></svg>
+            <div class="thinking-overlay">
+              <div class="thinking-status" id="thinkingStatus">Initializing</div>
+              <div class="thinking-substatus" id="thinkingSubstatus">Sending transcript to backend</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Results -->
+        <section class="panel results" id="resultsPanel" hidden>
+          <div class="panel-head">
+            <div class="panel-title">Recommendation</div>
+            <button class="btn btn-ghost" id="copyResultBtn" style="font-size:11.5px; padding:6px 10px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy
+            </button>
+          </div>
+          <div id="resultsContent"></div>
+        </section>
+      </main>
+
+      <aside>
+        <section class="panel">
+          <div class="panel-head">
+            <div class="panel-title">SOP Reference</div>
+            <span class="hint" style="margin:0;" id="sopCount">8 SOPs</span>
+          </div>
+          <div class="sop-list" id="sopList">
+            <div class="hint">Loading SOPs from server…</div>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   STATE
+============================================================ */
+let sops = [];
+let lastResult = null;
+let analysisInFlight = false;
+let nnInterval = null;
+let nnNodes = [];
+let nnLinks = [];
+let currentPatient = null;       // { name, patient_id, crm_record (or null) }
+
+const $ = (id) => document.getElementById(id);
+
+const transcriptInput = $("transcriptInput");
+const charCount = $("charCount");
+const analyzeBtn = $("analyzeBtn");
+const uploadBtn = $("uploadBtn");
+const fileInput = $("fileInput");
+const sampleBtn = $("sampleBtn");
+const sampleDropdown = $("sampleDropdown");
+const clearBtn = $("clearBtn");
+const thinkingPanel = $("thinkingPanel");
+const resultsPanel = $("resultsPanel");
+const resultsContent = $("resultsContent");
+const sopList = $("sopList");
+const sopCount = $("sopCount");
+const modeBadge = $("modeBadge");
+const modeBadgeText = $("modeBadgeText");
+const thinkingStatus = $("thinkingStatus");
+const thinkingSubstatus = $("thinkingSubstatus");
+const elapsedEl = $("elapsed");
+const copyResultBtn = $("copyResultBtn");
+const toast = $("toast");
+const nnSvg = $("nnSvg");
+
+/* ============================================================
+   INIT
+============================================================ */
+async function init() {
+  buildNeuralNetwork();
+  bindLookupEvents();
+  bindEvents();
+  updateCharCount();
+  await loadSOPs();
+}
+
+async function loadSOPs() {
+  try {
+    const resp = await fetch("/api/sops");
+    if (!resp.ok) throw new Error(resp.status);
+    sops = await resp.json();
+    renderSOPRef();
+    sopCount.textContent = `${sops.length} SOPs`;
+  } catch (e) {
+    sopList.innerHTML = `<div class="hint" style="color: var(--red);">Failed to load SOPs: ${escapeHtml(String(e))}</div>`;
+  }
+  // Probe backend mode by doing an OPTIONS-style ping (or a cheap analyze with empty)
+  // Instead just check /api/sops headers — easier: separate /api/health endpoint would be cleaner,
+  // but for now we infer from the first analyze response.
+  modeBadgeText.textContent = "ready";
+  modeBadge.classList.add("local");
+}
+
+/* ============================================================
+   PATIENT LOOKUP (gates the rest of the tool)
+============================================================ */
+function bindLookupEvents() {
+  const lookupBtn      = document.getElementById("lookupBtn");
+  const lookupResetBtn = document.getElementById("lookupResetBtn");
+  const nameInput      = document.getElementById("patientNameInput");
+  const idInput        = document.getElementById("patientIdInput");
+  lookupBtn.addEventListener("click", onLookup);
+  lookupResetBtn.addEventListener("click", onLookupReset);
+  // Submit on Enter from either field
+  for (const inp of [nameInput, idInput]) {
+    inp.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); onLookup(); }});
+  }
+  setAnalyzeGate(false);
+}
+
+async function onLookup() {
+  const name      = document.getElementById("patientNameInput").value.trim();
+  const patientId = document.getElementById("patientIdInput").value.trim();
+  if (!name && !patientId) {
+    showToast("Enter a patient name or Patient ID first", true);
+    return;
+  }
+
+  // Lock the lookup form and show the connecting visual immediately so the
+  // Specialist sees a clear "we're connecting to the CRM now" state.
+  setLookupLocked(true);
+  renderConnectingState();
+
+  // Run the API call AND a 5-second floor in parallel — gives the connecting
+  // animation time to play out even if the API responds in <100ms.
+  let data;
+  try {
+    const apiPromise = fetch("/api/crm/lookup", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name, patient_id: patientId })
+    }).then(r => r.json());
+    const [resp] = await Promise.all([
+      apiPromise,
+      new Promise(r => setTimeout(r, 5000))
+    ]);
+    data = resp;
+    if (!data.ok) throw new Error(data.error || "Lookup failed");
+  } catch (err) {
+    setLookupLocked(false);
+    document.getElementById("crmPanel").hidden = true;
+    document.getElementById("crmContent").innerHTML = "";
+    showToast(`Lookup failed: ${err.message || err}`, true);
+    return;
+  }
+
+  currentPatient = {
+    name,
+    patient_id: patientId,
+    crm_record: data.crm_record  // may be null if no match
+  };
+  renderPersistentCRM(data.crm_record, { name, patient_id: patientId });
+  setAnalyzeGate(true);
+  showToast(data.crm_record ? `Loaded CRM record for ${data.crm_record.name}` : "No CRM match — proceeding without record");
+}
+
+function renderConnectingState() {
+  const panel = document.getElementById("crmPanel");
+  const content = document.getElementById("crmContent");
+  panel.hidden = false;
+  content.innerHTML = `
+    <div class="crm-connecting">
+      <div class="crm-connecting-head">
+        <div class="crm-spinner" aria-hidden="true">
+          <span class="crm-spin-dot"></span><span class="crm-spin-dot"></span><span class="crm-spin-dot"></span>
+        </div>
+        <div class="crm-connecting-title">Connecting to Carrum CRM…</div>
+        <div class="crm-connecting-sub">Securely linking the SOP analysis tool to the patient record system.</div>
+      </div>
+      <div class="crm-connecting-steps">
+        <div class="crm-step"><span class="crm-step-icon"></span>Querying patient registry</div>
+        <div class="crm-step"><span class="crm-step-icon"></span>Resolving employer plan &amp; benefits</div>
+        <div class="crm-step"><span class="crm-step-icon"></span>Loading clinical history</div>
+        <div class="crm-step"><span class="crm-step-icon"></span>Syncing patient profile</div>
+      </div>
+    </div>
+  `;
+  // Stage the 4 step animations to fill the 5-second floor:
+  // each step "running" for ~1s, then "done", overlapping slightly.
+  const steps = content.querySelectorAll(".crm-step");
+  const stepDuration = 1000;
+  const stepStagger  = 1100;
+  steps.forEach((s, i) => {
+    setTimeout(() => s.classList.add("crm-step-running"), i * stepStagger);
+    setTimeout(() => {
+      s.classList.remove("crm-step-running");
+      s.classList.add("crm-step-done");
+    }, i * stepStagger + stepDuration);
+  });
+}
+
+function onLookupReset() {
+  currentPatient = null;
+  document.getElementById("patientNameInput").value = "";
+  document.getElementById("patientIdInput").value = "";
+  document.getElementById("crmPanel").hidden = true;
+  document.getElementById("crmContent").innerHTML = "";
+  setLookupLocked(false);
+  setAnalyzeGate(false);
+  document.getElementById("resultsPanel").hidden = true;
+
+  // Also wipe the transcript — a fresh patient should start with a fresh transcript
+  transcriptInput.value = "";
+  lastRawTranscript = null;
+  hideEmailNotice();
+  updateCharCount();
+
+  showToast("Patient cleared");
+}
+
+function setLookupLocked(locked) {
+  document.getElementById("patientNameInput").disabled = locked;
+  document.getElementById("patientIdInput").disabled = locked;
+  document.getElementById("lookupBtn").hidden = locked;
+  document.getElementById("lookupResetBtn").hidden = !locked;
+  document.getElementById("lookupHint").textContent = locked
+    ? "Patient locked in. Click 'Change patient' to reset."
+    : "Enter the patient's name and Carrum Patient ID to load their CRM profile.";
+}
+
+function setAnalyzeGate(unlocked) {
+  analyzeBtn.disabled = !unlocked;
+  analyzeBtn.title = unlocked ? "" : "Look up the patient first (step 1) to enable analysis.";
+}
+
+function renderPersistentCRM(record, query) {
+  const panel = document.getElementById("crmPanel");
+  const content = document.getElementById("crmContent");
+  if (record) {
+    content.innerHTML = renderCRMCard(record);
+  } else {
+    // No match — show empty state with the entered identifiers so the
+    // Specialist sees what was queried.
+    content.innerHTML = `
+      <div class="crm-card crm-card-empty">
+        <div class="crm-head">
+          <div class="crm-eyebrow">Patient Profile · CRM Record</div>
+          <span class="crm-mock">Mock CRM</span>
+        </div>
+        <div class="crm-id-row">
+          <div class="crm-avatar" style="opacity: 0.6;">?</div>
+          <div class="crm-id-text">
+            <div class="crm-name">${escapeHtml(query.name || "Unknown patient")}</div>
+            <div class="crm-pid">${escapeHtml(query.patient_id || "(no Patient ID)")}</div>
+          </div>
+        </div>
+        <p class="crm-no-match">No CRM record matched this query. Demo CRM only has records for the 3 sample patients (Sarah Thompson · P-10481, Bob Larson · P-10527, Maria Vasquez · P-10612). You can still proceed with transcript analysis.</p>
+      </div>
+    `;
+  }
+  panel.hidden = false;
+}
+
+function bindEvents() {
+  transcriptInput.addEventListener("input", () => {
+    updateCharCount();
+    // If the user manually edits after auto-cleanup, the saved "original" no
+    // longer represents what's in the box — drop it so Undo doesn't surprise them.
+    lastRawTranscript = null;
+  });
+
+  // Detect email-formatted paste and auto-extract the conversation body
+  transcriptInput.addEventListener("paste", (e) => {
+    const pasted = e.clipboardData?.getData("text") || "";
+    if (!pasted) return;
+    const result = preprocessEmail(pasted);
+    // Only intervene when there was meaningful email cleanup; otherwise let
+    // the default paste happen so we don't surprise the user with cosmetic re-writes.
+    if (!result.wasEmail || result.removedLines === 0) return;
+    e.preventDefault();
+    // If textarea is empty, replace; otherwise insert at caret as the cleaned body
+    if (!transcriptInput.value.trim()) {
+      applyTranscript(pasted, { source: null });
+    } else {
+      const start = transcriptInput.selectionStart;
+      const end   = transcriptInput.selectionEnd;
+      transcriptInput.setRangeText(result.cleaned, start, end, "end");
+      lastRawTranscript = transcriptInput.value; // partial — undo restores pre-paste state would need more state; skip
+      showEmailNotice(result);
+      updateCharCount();
+    }
+  });
+
+  analyzeBtn.addEventListener("click", onAnalyze);
+  uploadBtn.addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", onFileUpload);
+  clearBtn.addEventListener("click", () => {
+    transcriptInput.value = "";
+    lastRawTranscript = null;
+    hideEmailNotice();
+    updateCharCount();
+    resultsPanel.hidden = true;
+  });
+  copyResultBtn.addEventListener("click", copyCurrentResult);
+
+  document.getElementById("emailNoticeUndo")?.addEventListener("click", undoEmailPreprocess);
+
+  sampleBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    sampleDropdown.classList.toggle("open");
+  });
+  document.addEventListener("click", () => sampleDropdown.classList.remove("open"));
+  sampleDropdown.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const key = btn.getAttribute("data-sample");
+      transcriptInput.value = SAMPLES[key];
+      lastRawTranscript = null;
+      hideEmailNotice();
+      updateCharCount();
+      sampleDropdown.classList.remove("open");
+      showToast(`Loaded sample: ${btn.textContent.trim()}`);
+    });
+  });
+
+  document.addEventListener("dragover", (e) => { e.preventDefault(); });
+  document.addEventListener("drop", (e) => {
+    e.preventDefault();
+    const f = e.dataTransfer.files?.[0];
+    if (f && (
+      f.type === "text/plain" ||
+      f.type === "message/rfc822" ||
+      f.name.endsWith(".txt") ||
+      f.name.endsWith(".eml")
+    )) readFileToTranscript(f);
+  });
+
+  // Delegated click handler for the Next Steps CTAs (rendered after each analysis)
+  resultsContent.addEventListener("click", handleCtaClick);
+}
+
+function updateCharCount() {
+  charCount.textContent = `${transcriptInput.value.length.toLocaleString()} chars`;
+}
+
+/* ============================================================
+   FILE UPLOAD
+============================================================ */
+function onFileUpload(e) {
+  const file = e.target.files?.[0];
+  if (file) readFileToTranscript(file);
+  e.target.value = "";
+}
+function readFileToTranscript(file) {
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const raw = ev.target.result;
+    applyTranscript(raw, { source: file.name });
+  };
+  reader.onerror = () => showToast("Could not read file", true);
+  reader.readAsText(file);
+}
+
+/* ============================================================
+   Email-aware transcript preprocessing
+   Drop email headers, forward markers, quote prefixes, and
+   common signature footers so an emailed transcript can be
+   pasted/uploaded as-is and analyzed cleanly.
+============================================================ */
+let lastRawTranscript = null;
+
+function applyTranscript(rawText, opts = {}) {
+  const result = preprocessEmail(rawText);
+  // Only surface the notice when something meaningful was actually stripped.
+  // CRLF→LF normalization or trailing-whitespace trim isn't worth telling
+  // the Specialist about.
+  const meaningfulCleanup = result.wasEmail && result.removedLines > 0;
+  if (meaningfulCleanup) {
+    lastRawTranscript = rawText;
+    transcriptInput.value = result.cleaned;
+    showEmailNotice(result);
+  } else {
+    lastRawTranscript = null;
+    transcriptInput.value = result.cleaned; // still use cleaned (CRLF normalized) silently
+    hideEmailNotice();
+  }
+  updateCharCount();
+  if (opts.source) showToast(`Loaded ${opts.source}`);
+}
+
+function preprocessEmail(text) {
+  if (!text) return { cleaned: text, wasEmail: false, removedLines: 0, reasons: [] };
+
+  let working = text.replace(/\r\n/g, "\n");
+  const reasons = [];
+  const originalLineCount = working.split("\n").length;
+
+  // Helper: strip a leading email header block, if present.
+  // Returns the body (everything after the first blank line that follows headers).
+  const HEADER_KEYS = /^(From|To|Cc|Bcc|Subject|Sent|Date|Reply-To|Return-Path|Message-ID|MIME-Version|Content-Type|X-[A-Za-z-]+):/i;
+  const stripHeaderBlock = (s) => {
+    const lookahead = s.split("\n").slice(0, 25);
+    if (lookahead.filter(l => HEADER_KEYS.test(l)).length < 2) return { body: s, hadHeaders: false };
+    const lines = s.split("\n");
+    let bodyStart = 0;
+    for (let i = 0; i < lines.length; i++) {
+      if (HEADER_KEYS.test(lines[i])) { bodyStart = i + 1; continue; }
+      if (lines[i].trim() === "" && bodyStart > 0) { bodyStart = i + 1; break; }
+      if (bodyStart > 0 && /^\s/.test(lines[i])) { bodyStart = i + 1; continue; }
+      if (bodyStart > 0) break;
+    }
+    return bodyStart > 0
+      ? { body: lines.slice(bodyStart).join("\n"), hadHeaders: true }
+      : { body: s, hadHeaders: false };
+  };
+
+  // 1. Strip the OUTER email header block, if any.
+  let r = stripHeaderBlock(working);
+  if (r.hadHeaders) { working = r.body; reasons.push("email headers"); }
+
+  // 2. Forward-chain handling: a forwarded email contains the cover note ABOVE
+  //    a marker and the ORIGINAL message BELOW. The original is what we want.
+  //    Find the LAST forward marker and keep everything after it.
+  const fwdMarkers = [
+    /^-{2,}\s*Original Message\s*-{2,}.*$/im,
+    /^_{5,}\s*$/m,
+    /^Begin forwarded message:\s*$/im,
+    /^On\s.+\bwrote:\s*$/im,
+    /^>{0,2}\s*From:\s+.+@.+$/m
+  ];
+  let lastIdx = -1;
+  let lastEndIdx = -1;
+  for (const rx of fwdMarkers) {
+    const m = working.match(rx);
+    if (m && m.index !== undefined && m.index > lastIdx) {
+      lastIdx = m.index;
+      lastEndIdx = m.index + m[0].length;
+    }
+  }
+  if (lastIdx > 0) {
+    working = working.slice(lastEndIdx).replace(/^\n+/, "");
+    reasons.push("forward chain");
+    // The original message often has its OWN header block — strip it too.
+    r = stripHeaderBlock(working);
+    if (r.hadHeaders) { working = r.body; }
+  }
+
+  // 3. Strip quote prefixes ("> patient said this") so quoted conversations
+  //    in a forward become normal text.
+  const quoteCount = (working.match(/^>+\s?/gm) || []).length;
+  if (quoteCount > 3) {
+    working = working.split("\n").map(l => l.replace(/^>+\s?/, "")).join("\n");
+    reasons.push("quote prefixes");
+  }
+
+  // 4. Strip signature/footer blocks. Cut at common sentinels.
+  const sigPatterns = [
+    /^-- ?\n[\s\S]*$/m,                              // RFC sig delimiter
+    /^Sent from my (iPhone|iPad|Android|mobile).*$/im,
+    /^Get Outlook for (iOS|Android).*$/im,
+    /^This (e-?mail|message)( and any attachments?)? (is|are) confidential[\s\S]*$/im,
+    /^CONFIDENTIALITY NOTICE:[\s\S]*$/im,
+    /^DISCLAIMER:[\s\S]*$/im
+  ];
+  for (const rx of sigPatterns) {
+    const m = working.match(rx);
+    if (m && m.index !== undefined) {
+      working = working.slice(0, m.index).trimEnd();
+      if (!reasons.includes("signature/footer")) reasons.push("signature/footer");
+    }
+  }
+
+  // 5. Collapse runs of 3+ blank lines, trim outer whitespace
+  working = working.replace(/\n{3,}/g, "\n\n").trim();
+
+  const finalLineCount = working.split("\n").length;
+  const removedLines = Math.max(0, originalLineCount - finalLineCount);
+
+  return {
+    cleaned: working,
+    wasEmail: reasons.length > 0,
+    removedLines,
+    reasons
+  };
+}
+
+function showEmailNotice(result) {
+  const el = document.getElementById("emailNotice");
+  const txt = document.getElementById("emailNoticeText");
+  if (!el || !txt) return;
+  const reasonText = result.reasons.length ? ` (${result.reasons.join(", ")})` : "";
+  txt.textContent = `Email content detected — stripped ${result.removedLines} line${result.removedLines === 1 ? "" : "s"}${reasonText}. Showing the conversation body only.`;
+  el.hidden = false;
+}
+
+function hideEmailNotice() {
+  const el = document.getElementById("emailNotice");
+  if (el) el.hidden = true;
+}
+
+function undoEmailPreprocess() {
+  if (!lastRawTranscript) return;
+  transcriptInput.value = lastRawTranscript;
+  lastRawTranscript = null;
+  updateCharCount();
+  hideEmailNotice();
+  showToast("Restored original (pre-cleanup) text");
+}
+
+/* ============================================================
+   ANALYZE — backend call
+============================================================ */
+async function onAnalyze() {
+  const transcript = transcriptInput.value.trim();
+  if (!transcript) { showToast("Paste or upload a transcript first", true); return; }
+  if (analysisInFlight) return;
+
+  analysisInFlight = true;
+  analyzeBtn.disabled = true;
+  resultsPanel.hidden = true;
+  thinkingPanel.hidden = false;
+  startThinkingAnimation();
+
+  try {
+    const resp = await fetch("/api/analyze", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        transcript,
+        patient_name: currentPatient?.name || "",
+        patient_id:   currentPatient?.patient_id || ""
+      })
+    });
+    const data = await resp.json();
+    if (!resp.ok || !data.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+    updateModeFromResult(data);
+    renderResults(data);
+  } catch (err) {
+    showToast(`Analysis failed: ${err.message || err}`, true);
+    thinkingPanel.hidden = true;
+  } finally {
+    stopThinkingAnimation();
+    analysisInFlight = false;
+    analyzeBtn.disabled = false;
+  }
+}
+
+function updateModeFromResult(data) {
+  if (data.engine === "claude") {
+    modeBadge.classList.remove("local");
+    modeBadge.classList.add("ai");
+    modeBadgeText.textContent = "Claude · " + (data.model || "");
+  } else {
+    modeBadge.classList.remove("ai");
+    modeBadge.classList.add("local");
+    modeBadgeText.textContent = "Local Heuristic";
+  }
+}
+
+/* ============================================================
+   RESULT RENDERING
+============================================================ */
+function renderResults(result) {
+  lastResult = result;
+  thinkingPanel.hidden = true;
+  resultsPanel.hidden = false;
+
+  const dispStatus = result.overall_disposition?.status || "Cleared";
+  const dispClass = "status-" + dispStatus.replace(/[^A-Za-z]/g, "");
+  const dispSummary = result.overall_disposition?.summary || "";
+
+  const ps = result.patient_summary || {};
+  const findings = result.findings || [];
+  const triggeredIds = new Set(findings.map(f => f.sop_id));
+
+  // CRM is rendered persistently at the top of the page (after lookup, step 1).
+  // Results no longer include it — start with the side-by-side row.
+  let html = `
+    <div class="results-row">
+      <div class="summary-card row-col">
+        <div class="summary-head">
+          <div class="summary-eyebrow">Patient Summary</div>
+          ${ps.category ? `<span class="category-pill ${escapeHtml(ps.category)}">${escapeHtml(ps.category)} Case</span>` : ""}
+        </div>
+        ${ps.demographics ? `<div class="demographics">${escapeHtml(ps.demographics)}</div>` : ""}
+        ${ps.key_facts && ps.key_facts.length ? `<ul class="key-facts">${ps.key_facts.map(f => `<li>${escapeHtml(f)}</li>`).join("")}</ul>` : `<div class="hint">No structured facts extracted.</div>`}
+        ${ps.note ? `<div class="summary-note">${escapeHtml(ps.note)}</div>` : ""}
+      </div>
+
+      <div class="disposition-banner row-col">
+        <div class="disposition-left">
+          <div class="disposition-eyebrow">Recommendation · Overall Case Disposition</div>
+          <div class="disposition-status ${dispClass}">${escapeHtml(dispStatus)}</div>
+        </div>
+        <div class="disposition-meta">
+          <span class="pill">Engine: <strong style="color: var(--text); margin-left: 4px;">${result.engine === "claude" ? "Claude · " + escapeHtml(result.model || "") : "Local Heuristic"}</strong></span>
+          ${result.elapsed_ms ? `<span class="pill">${(result.elapsed_ms/1000).toFixed(1)}s</span>` : ""}
+        </div>
+        ${dispSummary ? `<p class="disposition-summary">${escapeHtml(dispSummary)}</p>` : ""}
+      </div>
+    </div>
+  `;
+
+  // 3. Next Steps (synthesized action list, each with a review gate + CTA)
+  const nextSteps = Array.isArray(result.next_steps) ? result.next_steps : [];
+  if (nextSteps.length) {
+    html += `
+      <div class="next-steps-card">
+        <div class="next-steps-head">
+          <div class="next-steps-eyebrow">Next Steps</div>
+          <span class="next-steps-count">${nextSteps.length} action${nextSteps.length === 1 ? "" : "s"}</span>
+        </div>
+        <ol class="next-steps-list">
+          ${nextSteps.map((s, i) => {
+            const cta = ctaForStep(s);
+            return `
+              <li data-step-state="pending" data-patient-facing="${cta.patientFacing ? "true" : "false"}">
+                <div class="ns-text">${formatNextStep(s)}${cta.patientFacing ? `<span class="ns-pf-tag" title="Patient communication — held for batched email">📧 patient comm</span>` : ""}</div>
+                <div class="ns-controls">
+                  <div class="ns-review" role="group" aria-label="Approve or flag this step">
+                    <button class="ns-thumb ns-thumb-up" data-step-index="${i}" data-vote="up" type="button" aria-label="Approve step ${i + 1}" title="Approve — enables the automation">👍</button>
+                    <button class="ns-thumb ns-thumb-down" data-step-index="${i}" data-vote="down" type="button" aria-label="Flag step ${i + 1}" title="Flag — mark for manual follow-up">👎</button>
+                  </div>
+                  <div class="ns-flag-note" hidden>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V4a2 2 0 0 1 2-2h12l-2 5 2 5H6"/></svg>
+                    Flagged for manual follow-up
+                  </div>
+                  <button class="ns-cta ns-cta-locked" data-step-index="${i}" data-cta-action="${escapeHtml(cta.action)}" data-patient-facing="${cta.patientFacing ? "true" : "false"}" type="button" disabled title="Approve the step with 👍 to enable">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+                    ${escapeHtml(cta.label)}
+                  </button>
+                </div>
+              </li>
+            `;
+          }).join("")}
+        </ol>
+        <div class="ns-batch-row" id="nsBatchRow" hidden>
+          <div class="ns-batch-info" id="nsBatchInfo">0 patient comms queued</div>
+          <button class="btn ns-batch-cta" id="nsGenerateEmailBtn" type="button" disabled title="Complete the remaining steps first">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Generate Email to Patient
+          </button>
+        </div>
+        <p class="ns-disclaimer">Approve each step with 👍, or flag with 👎. Internal CTAs (CRM, anesthesia flag, etc.) fire immediately; patient-comm CTAs are <em>queued</em> until every other step is resolved, then bundled into a single draft email. CTAs are demo only — in production each would deep-link to the relevant workflow.</p>
+      </div>
+    `;
+  }
+
+  // 4. Triggered SOP findings
+  html += `
+    <div class="findings-head" style="margin-top: 18px;">
+      <h2>Triggered SOP Findings</h2>
+      <span class="findings-count">${findings.length} finding${findings.length === 1 ? "" : "s"}</span>
+    </div>
+  `;
+
+  if (findings.length === 0) {
+    html += `
+      <div class="empty-findings">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h3>No SOP findings triggered</h3>
+        <p>Patient may proceed via the standard workflow pending standard intake.</p>
+      </div>
+    `;
+  } else {
+    for (const f of findings) {
+      const statusKey = "status-" + f.status.replace(/[^A-Za-z]/g, "");
+      const confKey = "confidence-" + (f.confidence || "Medium");
+      html += `
+        <div class="finding" data-status="${escapeHtml(f.status)}">
+          <div class="finding-head">
+            <div>
+              <div class="finding-title">${escapeHtml(f.finding)}</div>
+              <div class="finding-id">${escapeHtml(f.sop_id)}</div>
+            </div>
+          </div>
+          <div class="finding-meta">
+            <span class="category-pill ${escapeHtml(f.category)}">${escapeHtml(f.category)}</span>
+            <span class="pill ${statusKey}">${escapeHtml(f.status)}</span>
+            <span class="pill ${confKey}">Confidence: ${escapeHtml(f.confidence || "Medium")}</span>
+          </div>
+          <div class="finding-action"><strong>Action:</strong> ${escapeHtml(f.action)}</div>
+          ${f.evidence ? `<div class="finding-evidence"><strong>Evidence:</strong> ${escapeHtml(f.evidence)}</div>` : ""}
+        </div>
+      `;
+    }
+  }
+
+  resultsContent.innerHTML = html;
+
+  // Drop any stale email draft from a previous analysis run
+  document.getElementById("emailDraftPanel")?.remove();
+
+  // Initialize the batch-row state for the new run
+  refreshBatchRow();
+
+  // Update SOP reference highlight
+  document.querySelectorAll(".sop-ref").forEach(el => {
+    el.classList.toggle("triggered", triggeredIds.has(el.getAttribute("data-id")));
+  });
+
+  resultsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function copyCurrentResult() {
+  if (!lastResult) return;
+  const r = lastResult;
+  const ps = r.patient_summary || {};
+  const lines = [];
+  lines.push("Carrum SOP Analysis");
+  lines.push("═══════════════════");
+  if (r.crm_record) {
+    const c = r.crm_record;
+    lines.push(`Patient: ${c.name}  (${c.patient_id || "—"})`);
+    lines.push(`  Age ${c.age ?? "—"} · ${c.sex ?? "—"} · ${c.location ?? "—"}`);
+    lines.push(`  Height ${c.height ?? "—"} · Weight ${c.weight ?? "—"}${c.bmi ? ` (BMI ${c.bmi})` : ""}`);
+    lines.push(`  Employer: ${c.employer ?? "—"}`);
+    lines.push("");
+  }
+  lines.push(`Overall Disposition: ${r.overall_disposition?.status || "Cleared"}`);
+  if (r.overall_disposition?.summary) lines.push(r.overall_disposition.summary);
+  lines.push("");
+  lines.push("Patient Summary");
+  lines.push("---------------");
+  if (ps.category) lines.push(`Category: ${ps.category}`);
+  if (ps.demographics) lines.push(`Patient: ${ps.demographics}`);
+  for (const f of (ps.key_facts || [])) lines.push(`  • ${f}`);
+  lines.push("");
+  if (Array.isArray(r.next_steps) && r.next_steps.length) {
+    lines.push("Next Steps");
+    lines.push("---------------");
+    r.next_steps.forEach((s, i) => lines.push(`  ${i + 1}. ${s}`));
+    lines.push("");
+  }
+  lines.push(`Triggered Findings (${(r.findings || []).length})`);
+  lines.push("---------------");
+  for (const f of (r.findings || [])) {
+    lines.push(`[${f.sop_id}] ${f.category} · ${f.finding}`);
+    lines.push(`  Status: ${f.case_status}  (Confidence: ${f.confidence})`);
+    lines.push(`  Action: ${f.required_action}`);
+    if (f.evidence) lines.push(`  Evidence: ${f.evidence}`);
+    lines.push("");
+  }
+  lines.push(`Engine: ${r.engine === "claude" ? "Claude (" + (r.model || "") + ")" : "Local Heuristic"}`);
+  navigator.clipboard.writeText(lines.join("\n")).then(
+    () => showToast("Copied to clipboard"),
+    () => showToast("Copy failed", true)
+  );
+}
+
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+function formatNextStep(s) {
+  // Highlights "[SOP-X-###]" prefixes so the source SOP for each step pops.
+  const escaped = escapeHtml(s);
+  // Match the new SOP id formats: GEN-001, JNT-001..004, BAR-001..003 (and any [A-Z]{2,4}-\d{3})
+  return escaped.replace(/^\[([A-Z]{2,4}-\d{3})\]\s*/, '<span class="ns-tag">$1</span> ');
+}
+
+function renderCRMCard(rec) {
+  if (!rec) {
+    return `
+      <div class="crm-card crm-card-empty">
+        <div class="crm-head">
+          <div class="crm-eyebrow">Patient Profile · CRM Record</div>
+          <span class="crm-mock">Mock CRM</span>
+        </div>
+        <p class="crm-no-match">No patient record matched. In production this would be auto-resolved from the case ID; the demo CRM only has records for the 3 sample patients.</p>
+      </div>
+    `;
+  }
+  const initials = String(rec.name || "?")
+    .split(/\s+/).map(s => s.charAt(0)).join("").slice(0, 2).toUpperCase();
+  const fields = [
+    { label: "Age",      value: rec.age != null ? rec.age : "—" },
+    { label: "Sex",      value: rec.sex || "—" },
+    { label: "Location", value: rec.location || "—" },
+    { label: "Height",   value: rec.height || "—" },
+    { label: "Weight",   value: rec.weight ? (rec.bmi ? `${rec.weight} (BMI ${rec.bmi})` : rec.weight) : "—" },
+    { label: "Employer", value: rec.employer || "—" }
+  ];
+  return `
+    <div class="crm-card">
+      <div class="crm-head">
+        <div class="crm-eyebrow">Patient Profile · CRM Record</div>
+        <span class="crm-mock">Mock CRM</span>
+      </div>
+      <div class="crm-id-row">
+        <div class="crm-avatar">${escapeHtml(initials)}</div>
+        <div class="crm-id-text">
+          <div class="crm-name">${escapeHtml(rec.name || "Unknown")}</div>
+          <div class="crm-pid">${escapeHtml(rec.patient_id || "")}</div>
+        </div>
+      </div>
+      <div class="crm-grid">
+        ${fields.map(f => `
+          <div class="crm-field">
+            <div class="crm-field-label">${escapeHtml(f.label)}</div>
+            <div class="crm-field-value">${escapeHtml(String(f.value))}</div>
+          </div>
+        `).join("")}
+      </div>
+      ${rec.matched_via ? `<div class="crm-match-note">${escapeHtml(rec.matched_via)}</div>` : ""}
+    </div>
+  `;
+}
+
+/* ============================================================
+   CTA mapping for Next Steps
+   Each Next Step gets a fake CTA matched to the verb in the step.
+   Order matters - more specific patterns first.
+============================================================ */
+const CTA_RULES = [
+  // patientFacing=false → internal CRM/flag actions, fire immediately
+  // patientFacing=true  → require contacting the patient; HELD until the rest
+  //                      of the steps are complete, then bundled into a "Generate Email" draft
+  { match: /document.{0,30}crm|update.{0,20}case status|document the conversation|capture.{0,20}crm/i,
+    label: "Click here to start documentation in case profile",
+    action: "crm-document", patientFacing: false },
+  { match: /smoking cessation/i,
+    label: "Click here to enroll patient in Smoking Cessation",
+    action: "enroll-cessation", patientFacing: true },
+  { match: /(refer|referral).{0,30}(physical therapy|pt|6.?12 week|conservative)/i,
+    label: "Click here to send PT referral",
+    action: "send-pt-referral", patientFacing: true },
+  { match: /\b(dietician|dietitian|registered diet|\bRD\b)/i,
+    label: "Click here to send RD list to patient",
+    action: "send-rd-list", patientFacing: true },
+  { match: /endoscopy|egd/i,
+    label: "Click here to schedule EGD",
+    action: "schedule-egd", patientFacing: true },
+  { match: /dental clearance|dental visit|dental work/i,
+    label: "Click here to send dental clearance request",
+    action: "send-dental-request", patientFacing: true },
+  { match: /anesthesia.{0,20}(high risk|consult|review)/i,
+    label: "Click here to flag for Anesthesia High Risk Consult",
+    action: "anesthesia-flag", patientFacing: false },
+  { match: /clinical md review|md review|glucose optimization/i,
+    label: "Click here to flag for Clinical MD Review",
+    action: "md-review", patientFacing: false },
+  { match: /revision case|specialized.{0,20}surgical review|revision-surgery/i,
+    label: "Click here to route to Revision Surgery queue",
+    action: "route-revision", patientFacing: false },
+  { match: /pause.{0,20}case|deferral|defer/i,
+    label: "Click here to pause case in CRM",
+    action: "pause-case", patientFacing: false },
+  { match: /place.{0,15}on hold|hold the case/i,
+    label: "Click here to place case on hold",
+    action: "hold-case", patientFacing: false },
+  { match: /mark.{0,20}ineligible|route.{0,30}prerequisite/i,
+    label: "Click here to mark case Ineligible",
+    action: "mark-ineligible", patientFacing: false },
+  { match: /tag.{0,20}high complexity|high complexity/i,
+    label: "Click here to tag as High Complexity",
+    action: "tag-complexity", patientFacing: false },
+  { match: /follow.up.{0,20}(call|tickler|reminder)|set.{0,20}follow.up/i,
+    label: "Click here to schedule follow-up reminder",
+    action: "schedule-followup", patientFacing: true },
+  { match: /instruct patient|inform.{0,15}patient|send patient.{0,20}instruction/i,
+    label: "Click here to send patient instructions",
+    action: "send-instructions", patientFacing: true },
+  { match: /schedule|consultation/i,
+    label: "Click here to open scheduler",
+    action: "open-scheduler", patientFacing: true },
+  { match: /confirm|verify/i,
+    label: "Click here to mark item confirmed",
+    action: "confirm-item", patientFacing: true }
+];
+
+function ctaForStep(stepText) {
+  // Strip the [SOP-X-###] prefix before matching so the rule patterns are cleaner.
+  const text = String(stepText).replace(/^\[[A-Z]{2,4}-\d{3}\]\s*/, "");
+  for (const rule of CTA_RULES) {
+    if (rule.match.test(text)) {
+      return { label: rule.label, action: rule.action, patientFacing: rule.patientFacing === true };
+    }
+  }
+  return { label: "Click here to take action", action: "generic", patientFacing: false };
+}
+
+function handleCtaClick(e) {
+  // Generate Email to Patient button (lives outside any <li>)
+  if (e.target.closest("#nsGenerateEmailBtn")) {
+    onGeneratePatientEmail();
+    return;
+  }
+
+  const li = e.target.closest("li[data-step-state]");
+  if (!li) return;
+
+  // Thumbs vote — toggles step state between pending / approved / flagged
+  const thumb = e.target.closest(".ns-thumb");
+  if (thumb) {
+    const currentState = li.getAttribute("data-step-state");
+    if (currentState === "actioned" || currentState === "queued") return; // locked
+    const vote = thumb.getAttribute("data-vote");
+    if (vote === "up") {
+      setStepState(li, currentState === "approved" ? "pending" : "approved");
+    } else if (vote === "down") {
+      setStepState(li, currentState === "flagged"  ? "pending" : "flagged");
+    }
+    refreshBatchRow();
+    return;
+  }
+
+  // CTA click — only fires when the step is approved (button is enabled)
+  const cta = e.target.closest(".ns-cta");
+  if (cta && !cta.disabled) {
+    const idx    = parseInt(cta.getAttribute("data-step-index"), 10);
+    const action = cta.getAttribute("data-cta-action");
+    const isPatientFacing = cta.getAttribute("data-patient-facing") === "true";
+
+    if (isPatientFacing) {
+      // HOLD: don't action yet. Queue for the bundled email instead.
+      setStepState(li, "queued");
+      cta.classList.add("ns-cta-queued");
+      cta.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Queued — will be sent in patient email
+      `;
+      cta.disabled = true;
+      showToast(`Step ${idx + 1} queued for patient email`);
+    } else {
+      // Internal action: fire immediately
+      setStepState(li, "actioned");
+      cta.classList.add("ns-cta-done");
+      cta.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        Action initiated
+      `;
+      cta.disabled = true;
+      showToast(`Demo: ${action} initiated for step ${idx + 1}`);
+    }
+    refreshBatchRow();
+  }
+}
+
+function setStepState(li, state) {
+  li.setAttribute("data-step-state", state);
+  const upBtn = li.querySelector(".ns-thumb-up");
+  const dnBtn = li.querySelector(".ns-thumb-down");
+  const cta   = li.querySelector(".ns-cta");
+  const flag  = li.querySelector(".ns-flag-note");
+
+  upBtn.classList.toggle("selected", state === "approved" || state === "actioned" || state === "queued");
+  dnBtn.classList.toggle("selected", state === "flagged");
+  if (flag) flag.hidden = state !== "flagged";
+
+  if (state === "actioned" || state === "queued") {
+    upBtn.disabled = true;
+    dnBtn.disabled = true;
+    return;
+  }
+
+  upBtn.disabled = false;
+  dnBtn.disabled = false;
+
+  if (state === "approved") {
+    cta.disabled = false;
+    cta.classList.remove("ns-cta-locked");
+    cta.title = "Trigger the recommended automation";
+  } else {
+    cta.disabled = true;
+    cta.classList.add("ns-cta-locked");
+    cta.title = state === "flagged"
+      ? "Step flagged for manual follow-up — CTA disabled"
+      : "Approve the step with 👍 to enable";
+  }
+}
+
+/* ============================================================
+   Batched patient-email flow:
+   patient-comm steps are HELD (state="queued") until every other
+   step is in actioned/flagged. Then "Generate Email" unlocks.
+============================================================ */
+function refreshBatchRow() {
+  const row     = document.getElementById("nsBatchRow");
+  const info    = document.getElementById("nsBatchInfo");
+  const btn     = document.getElementById("nsGenerateEmailBtn");
+  if (!row || !btn) return;
+
+  const items = Array.from(document.querySelectorAll(".next-steps-list li"));
+  const queued    = items.filter(li => li.getAttribute("data-step-state") === "queued").length;
+  const remaining = items.filter(li => {
+    const s = li.getAttribute("data-step-state");
+    return s === "pending" || s === "approved";
+  }).length;
+
+  // Has any patient-facing step been visible at all? show batch row whenever ≥1
+  // patient-comm step exists (so the user knows the workflow before queueing).
+  const anyPF = items.some(li => li.getAttribute("data-patient-facing") === "true" && li.getAttribute("data-step-state") !== "actioned");
+  row.hidden = !anyPF;
+
+  if (queued === 0) {
+    info.textContent = "Approve any patient-comm steps to queue them for a single email.";
+  } else if (remaining > 0) {
+    info.textContent = `${queued} patient comm${queued === 1 ? "" : "s"} queued · ${remaining} other step${remaining === 1 ? "" : "s"} still pending`;
+  } else {
+    info.textContent = `${queued} patient comm${queued === 1 ? "" : "s"} ready to email`;
+  }
+
+  // Enable Generate Email only when (a) at least 1 step is queued AND
+  // (b) every non-queued, non-actioned step has been resolved (no pending/approved leftover).
+  const ready = queued > 0 && remaining === 0;
+  btn.disabled = !ready;
+  btn.title = ready
+    ? "Compose a single email with all queued patient communications"
+    : (queued === 0
+        ? "No patient-comm steps queued yet"
+        : "Complete or flag the remaining steps first");
+}
+
+function onGeneratePatientEmail() {
+  const items = Array.from(document.querySelectorAll(".next-steps-list li"));
+  const queuedItems = items.filter(li => li.getAttribute("data-step-state") === "queued");
+  if (queuedItems.length === 0) return;
+
+  const queuedSteps = queuedItems.map(li => {
+    const idx = parseInt(li.querySelector(".ns-cta")?.getAttribute("data-step-index"), 10);
+    const text = lastResult?.next_steps?.[idx] || "";
+    return text.replace(/^\[[A-Z]{2,4}-\d{3}\]\s*/, "").trim();
+  });
+
+  // Mark each queued step as actioned now that it's been folded into the draft
+  for (const li of queuedItems) {
+    const cta = li.querySelector(".ns-cta");
+    cta.classList.remove("ns-cta-queued");
+    cta.classList.add("ns-cta-done");
+    cta.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      Drafted in email
+    `;
+    li.setAttribute("data-step-state", "actioned");
+  }
+  refreshBatchRow();
+
+  renderEmailDraft(queuedSteps);
+  // Bring the new draft into view
+  document.getElementById("emailDraftPanel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  showToast(`Drafted email with ${queuedSteps.length} action${queuedSteps.length === 1 ? "" : "s"}`);
+}
+
+function renderEmailDraft(steps) {
+  const rec = currentPatient?.crm_record;
+  const patientName = rec?.name || currentPatient?.name || "Patient";
+  const firstName   = patientName.split(/\s+/)[0];
+  const emailAddr   = inferPatientEmail(patientName);
+
+  // Build the body
+  const stepLines = steps.map((s, i) => `${i + 1}. ${s}`).join("\n");
+  const body = `Hi ${firstName},
+
+Thank you for taking the time to speak with our Carrum Health Care Team today. To keep your case moving forward, here are the next steps we need from you:
+
+${stepLines}
+
+If you have any questions, just reply to this email or call us at (888) 855-7806. We'll follow up if we don't hear back in the next few days.
+
+Best,
+Your Carrum Health Care Team`;
+
+  let panel = document.getElementById("emailDraftPanel");
+  if (!panel) {
+    panel = document.createElement("section");
+    panel.className = "panel email-draft-panel";
+    panel.id = "emailDraftPanel";
+    document.querySelector("main").appendChild(panel);
+  }
+  panel.innerHTML = `
+    <div class="panel-head">
+      <div class="panel-title">Draft Patient Email</div>
+      <span class="badge-mode" style="border-color: rgba(255, 209, 102, 0.4); color: var(--yellow);">Mock outbox</span>
+    </div>
+    <div class="email-meta">
+      <div class="email-meta-row"><span class="email-meta-label">To</span><span class="email-meta-value">${escapeHtml(emailAddr)}</span></div>
+      <div class="email-meta-row"><span class="email-meta-label">From</span><span class="email-meta-value">care-team@carrum.health</span></div>
+      <div class="email-meta-row"><span class="email-meta-label">Subject</span><span class="email-meta-value">Your next steps with Carrum Health</span></div>
+    </div>
+    <textarea class="email-body" id="emailBody" spellcheck="false">${escapeHtml(body)}</textarea>
+    <div class="email-actions">
+      <button class="btn" id="emailCopyBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy email body
+      </button>
+      <button class="btn btn-primary" id="emailSendBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Send Email
+      </button>
+    </div>
+  `;
+  // Wire up the buttons
+  document.getElementById("emailCopyBtn").addEventListener("click", () => {
+    const txt = document.getElementById("emailBody").value;
+    navigator.clipboard.writeText(txt).then(
+      () => showToast("Email body copied"),
+      () => showToast("Copy failed", true)
+    );
+  });
+  document.getElementById("emailSendBtn").addEventListener("click", () => {
+    const btn = document.getElementById("emailSendBtn");
+    btn.disabled = true;
+    btn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      Email sent (demo)
+    `;
+    showToast("Demo: patient email sent");
+  });
+}
+
+function inferPatientEmail(name) {
+  if (!name) return "patient@example.com";
+  const slug = name.toLowerCase().trim().replace(/[^\w\s-]/g, "").replace(/\s+/g, ".");
+  return `${slug}@example.com`;
+}
+
+/* ============================================================
+   SOP REFERENCE
+============================================================ */
+function renderSOPRef() {
+  if (!sops.length) {
+    sopList.innerHTML = `<div class="hint">No SOPs available.</div>`;
+    return;
+  }
+  sopList.innerHTML = "";
+  for (const sop of sops) {
+    const div = document.createElement("div");
+    div.className = "sop-ref";
+    div.setAttribute("data-id", sop.id);
+    const statusKey = "status-" + sop.status.replace(/[^A-Za-z]/g, "");
+    div.innerHTML = `
+      <div class="sop-ref-head">
+        <div class="sop-ref-name">${escapeHtml(sop.finding)}</div>
+        <div class="sop-ref-id">${escapeHtml(sop.id)}</div>
+      </div>
+      <div class="sop-ref-finding">${escapeHtml(sop.action)}</div>
+      <div class="sop-ref-meta">
+        <span class="category-pill ${escapeHtml(sop.category)}">${escapeHtml(sop.category)}</span>
+        <span class="pill ${statusKey}">${escapeHtml(sop.status)}</span>
+      </div>
+    `;
+    sopList.appendChild(div);
+  }
+}
+
+/* ============================================================
+   NEURAL NETWORK ANIMATION
+============================================================ */
+const NN_LAYERS = [4, 6, 6, 4, 1];
+
+function buildNeuralNetwork() {
+  const W = 800, H = 320, padX = 80;
+  const layerCount = NN_LAYERS.length;
+  nnNodes = []; nnLinks = [];
+  NN_LAYERS.forEach((nodeCount, li) => {
+    const x = padX + ((W - 2 * padX) / (layerCount - 1)) * li;
+    const layer = [];
+    for (let i = 0; i < nodeCount; i++) {
+      layer.push({ x, y: (H / (nodeCount + 1)) * (i + 1), layer: li, idx: i });
+    }
+    nnNodes.push(layer);
+  });
+  for (let li = 0; li < nnNodes.length - 1; li++) {
+    for (const a of nnNodes[li]) {
+      for (const b of nnNodes[li + 1]) {
+        nnLinks.push({ a, b });
+      }
+    }
+  }
+  const ns = "http://www.w3.org/2000/svg";
+  nnSvg.innerHTML = "";
+  const linkLayer = document.createElementNS(ns, "g");
+  for (const link of nnLinks) {
+    const line = document.createElementNS(ns, "line");
+    line.setAttribute("x1", link.a.x); line.setAttribute("y1", link.a.y);
+    line.setAttribute("x2", link.b.x); line.setAttribute("y2", link.b.y);
+    line.setAttribute("class", "link");
+    link.el = line;
+    linkLayer.appendChild(line);
+  }
+  nnSvg.appendChild(linkLayer);
+  const pulseLayer = document.createElementNS(ns, "g");
+  pulseLayer.setAttribute("id", "pulseLayer");
+  nnSvg.appendChild(pulseLayer);
+  const nodeLayer = document.createElementNS(ns, "g");
+  for (const layer of nnNodes) {
+    for (const node of layer) {
+      const c = document.createElementNS(ns, "circle");
+      c.setAttribute("cx", node.x); c.setAttribute("cy", node.y);
+      c.setAttribute("r", node.layer === NN_LAYERS.length - 1 ? 8 : 5);
+      c.setAttribute("class", "node" + (node.layer === NN_LAYERS.length - 1 ? " purple" : ""));
+      node.el = c;
+      nodeLayer.appendChild(c);
+    }
+  }
+  nnSvg.appendChild(nodeLayer);
+}
+
+function startThinkingAnimation() {
+  const startTime = performance.now();
+  let lastSpawn = 0;
+  const statusMessages = [
+    ["Sending transcript to backend", "Server is parsing the conversation"],
+    ["Extracting patient facts", "Identifying clinical signals and history"],
+    ["Cross-referencing SOP library", "Evaluating each of the 8 SOPs against transcript evidence"],
+    ["Reasoning about edge cases", "Numeric thresholds, denials, ambiguity"],
+    ["Composing care plan", "Ranking findings and producing next steps"]
+  ];
+  let statusIdx = -1;
+  const ns = "http://www.w3.org/2000/svg";
+  const pulseLayer = nnSvg.querySelector("#pulseLayer");
+  const activePulses = [];
+
+  function spawnPulse() {
+    const link = nnLinks[Math.floor(Math.random() * nnLinks.length)];
+    const dot = document.createElementNS(ns, "circle");
+    dot.setAttribute("r", 2.4);
+    dot.setAttribute("fill", "#00d4ff");
+    dot.style.filter = "drop-shadow(0 0 5px #00d4ff)";
+    pulseLayer.appendChild(dot);
+    activePulses.push({ link, dot, progress: 0, speed: 0.025 + Math.random() * 0.03 });
+    link.el.classList.add("link-active");
+    link.a.el.classList.add("pulse");
+  }
+
+  function tick() {
+    if (!analysisInFlight) return;
+    const now = performance.now();
+    const elapsed = (now - startTime) / 1000;
+    elapsedEl.textContent = elapsed.toFixed(1) + "s";
+    const phaseLen = 1.6;
+    const phase = Math.min(statusMessages.length - 1, Math.floor(elapsed / phaseLen));
+    if (phase !== statusIdx) {
+      statusIdx = phase;
+      thinkingStatus.textContent = statusMessages[phase][0];
+      thinkingSubstatus.textContent = statusMessages[phase][1];
+    }
+    if (now - lastSpawn > 80) {
+      const burst = 1 + Math.floor(Math.random() * 2);
+      for (let k = 0; k < burst; k++) spawnPulse();
+      lastSpawn = now;
+    }
+    for (let i = activePulses.length - 1; i >= 0; i--) {
+      const p = activePulses[i];
+      p.progress += p.speed;
+      if (p.progress >= 1) {
+        p.dot.remove();
+        p.link.el.classList.remove("link-active");
+        p.link.a.el.classList.remove("pulse");
+        p.link.b.el.classList.add("pulse");
+        setTimeout(() => p.link.b.el.classList.remove("pulse"), 280);
+        activePulses.splice(i, 1);
+      } else {
+        const x = p.link.a.x + (p.link.b.x - p.link.a.x) * p.progress;
+        const y = p.link.a.y + (p.link.b.y - p.link.a.y) * p.progress;
+        p.dot.setAttribute("cx", x); p.dot.setAttribute("cy", y);
+      }
+    }
+  }
+
+  if (nnInterval) clearInterval(nnInterval);
+  tick();
+  nnInterval = setInterval(tick, 33);
+}
+
+function stopThinkingAnimation() {
+  if (nnInterval) clearInterval(nnInterval);
+  nnInterval = null;
+  const pulseLayer = nnSvg.querySelector("#pulseLayer");
+  if (pulseLayer) pulseLayer.innerHTML = "";
+  for (const link of nnLinks) link.el?.classList.remove("link-active");
+  for (const layer of nnNodes) for (const node of layer) node.el?.classList.remove("pulse");
+}
+
+/* ============================================================
+   SAMPLE TRANSCRIPTS — from case-study PDF
+============================================================ */
+const SAMPLES = {
+  sarah: `Care Team: "Hi Sarah, I just wanted to verify a few details from your pre-consultation profile. To get you scheduled for your consultation, we need to clarify your surgical history. You mentioned you'd already had a prior weight-loss procedure. Could you tell me exactly what that was and when?"
+
+Sarah T: "Yeah, I had the lap band put in back in 2017 in Philadelphia. I'm having it removed and hopefully getting the sleeve done now. Does that matter?"
+
+Care Team: "It does, thank you. One quick check—your employer's plan is paired with ABC Hospital. Are you working with a Registered Dietician (RD) currently?"
+
+Sarah T: "Um, well, yes, Dr. Jones's referred me to a nutritionist like three months ago when I started this process. I saw him once, but I don't really have my own RD."
+
+Care Team: "Got it, that's okay. We just need to ensure you have one identified before we refer you over. We will also need an endoscopy done before we can schedule surgery itself, so try to schedule that for right after your consult. Now, looking at your medical conditions, can you confirm if you are on any chronic immune suppression, or if you have any active infection, open wounds, or active cancer treatment?"
+
+Sarah T: "No active cancer. But, well, a chronic infection, I guess. I get these recurrent urinary tract infections all the time, maybe like once every couple of months. Is that a problem?"
+
+Care Team: "Okay, we'll note that down. Finally, any pending major dental work?"`,
+
+  bob: `[Care Team] Hi Bob, this is the Carrum care team. We are wrapping up your initial profile to get you matched with your surgeon. We need to clarify a few answers from your questionnaire.
+
+[Bob L] ok what do you need? my hip is killing me.
+
+[Care Team] We're here to help. First, can you confirm if you have used any prescription pain medications, even just sometimes, to manage the hip pain?
+
+[Bob L] yeah. My PCP gave me oxycodone 5mg to take when it was really bad, but i've been on it pretty much daily for 2 years.
+
+[Care Team] Thank you, that's important for the anesthesiologist to know. Moving to your medical history—do you have any history of lower extremity severe trauma or deformity (accidents that required major surgery)?
+
+[Bob L] No, never broke a leg. But I did have a blood clot in my right leg after I broke my ankle in college, if that counts.
+
+[Care Team] Yes, we will note that history of blood clots. Are you currently using a walker or wheelchair and unable to walk more than 30 feet?
+
+[Bob L] No, I still limp around on my own. Just. it hurts.
+
+[Care Team] Got it. Last question for this step: Our records say you haven't attempted any conservative treatment, specifically physical therapy, for this hip pain. Is that correct?
+
+[Bob L] I mean, i tried it. I did like two sessions of exercises in the gym. But it didn't help. This has to be surgical.
+
+[Care Team] Got it. Thanks Bob! We have what we need.`,
+
+  maria: `Care Team: "Hi Maria, I'm just trying to verify the final pieces of information for your intake so we can route your case appropriately. We need to check on your comorbidities. Do you have a history of HIV, AIDS, end-stage renal failure, or active cancer treatment?"
+
+Maria V: "Look, I've already answered these questions for my regular doctor three times this month. Why does Carrum need them again? I don't have any of those things. I'm just getting old and my knee is falling apart because nobody will help me!"
+
+Care Team: "I understand the frustration, Maria. We just want to make sure we have the most current info for the surgeon. How about your blood sugar? If you have diabetes, do you know what your last HbA1c lab result was? The most recent one."
+
+Maria V: "I just had my physical last week and my doctor was annoyed because it was a 7.4. He's always nagging me to work on that, but it's hard when you can't walk to exercise!"
+
+Care Team: "I hear you. That 7.4 is a helpful number for us to have. Let's talk about lifestyle—and please be honest so we can keep you safe during surgery. Are you currently an active smoker, or have you quit within the last three months?"
+
+Maria V: "Is this where you tell me I can't have surgery because I have a cigarette with my coffee? Yes, I'm active. I smoke maybe a half-pack a day. I tried to quit last year and I lasted two weeks and was miserable the whole time. Are you going to deny me for that?"
+
+Care Team: "We're going to help you manage it. Here is what happens next: I'm going to review your details and follow up by Thursday afternoon with a clear roadmap for the next few weeks."
+
+Maria V: "Yes. Thursday afternoon. I'll be waiting for the call."`
+};
+
+/* ============================================================
+   TOAST
+============================================================ */
+function showToast(msg, isError) {
+  toast.textContent = msg;
+  toast.classList.toggle("error", !!isError);
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 2400);
+}
+
+/* ============================================================
+   GO
+============================================================ */
+init();
+</script>
+</body>
+</html>

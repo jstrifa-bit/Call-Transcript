@@ -1,0 +1,38 @@
+[
+  {
+    "patient_id": "P-10481",
+    "name": "Sarah Thompson",
+    "name_aliases": ["Sarah T", "Sarah Thompson", "Sarah T."],
+    "age": 42,
+    "sex": "Female",
+    "location": "Philadelphia, PA",
+    "height": "5'5\"",
+    "weight": "248 lbs",
+    "bmi": 41.3,
+    "employer": "TechCorp Industries"
+  },
+  {
+    "patient_id": "P-10527",
+    "name": "Bob Larson",
+    "name_aliases": ["Bob L", "Bob Larson", "Bob L."],
+    "age": 58,
+    "sex": "Male",
+    "location": "Cleveland, OH",
+    "height": "5'10\"",
+    "weight": "215 lbs",
+    "bmi": 30.9,
+    "employer": "Greatlakes Manufacturing Co."
+  },
+  {
+    "patient_id": "P-10612",
+    "name": "Maria Vasquez",
+    "name_aliases": ["Maria V", "Maria Vasquez", "Maria V."],
+    "age": 64,
+    "sex": "Female",
+    "location": "Phoenix, AZ",
+    "height": "5'4\"",
+    "weight": "178 lbs",
+    "bmi": 30.6,
+    "employer": "City of Phoenix"
+  }
+]

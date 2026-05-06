@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Futurepedia – The world's largest AI tools directory. Find all our links here.">
+  <title>Futurepedia | Links</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ================================================================
+       RESET & BASE
+    ================================================================ */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg:              #04040f;
+      --cyan:            #00d4ff;
+      --purple:          #7c3aed;
+      --node-bg:         rgba(6, 8, 28, 0.90);
+      --node-border:     rgba(0, 212, 255, 0.28);
+      --node-border-h:   rgba(0, 212, 255, 0.95);
+      --glow-cyan:       rgba(0, 212, 255, 0.18);
+      --center-size:     148px;
+      --node-size:       112px;
+      --font:            'Inter', system-ui, -apple-system, sans-serif;
+      --ease:            0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: #c4d4f0;
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ================================================================
+       BACKGROUND GRADIENT
+    ================================================================ */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 55% at 50% 50%, rgba(10, 10, 40, 0.9) 0%, transparent 100%),
+        radial-gradient(ellipse 30% 30% at 20% 80%, rgba(124, 58, 237, 0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 30% 30% at 80% 20%, rgba(0, 212, 255, 0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ================================================================
+       LAYER 0 — Ambient particle canvas
+    ================================================================ */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* ================================================================
+       LAYER 1 — SVG connection lines + pulse dots
+    ================================================================ */
+    #network-svg {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    .conn-line {
+      stroke: rgba(0, 212, 255, 0.16);
+      stroke-width: 1.5;
+      stroke-dasharray: 5 9;
+      transition:
+        stroke 0.35s ease,
+        stroke-width 0.35s ease,
+        filter 0.35s ease;
+    }
+
+    .conn-line.active {
+      stroke: rgba(0, 212, 255, 0.82);
+      stroke-width: 2;
+      stroke-dasharray: none;
+      filter: drop-shadow(0 0 6px rgba(0, 212, 255, 0.65));
+    }
+
+    .pulse-dot {
+      fill: rgba(255, 255, 255, 0.95);
+      filter: drop-shadow(0 0 4px rgba(0, 212, 255, 1));
+      pointer-events: none;
+    }
+
+    /* ================================================================
+       LAYER 2 — Interactive nodes
+    ================================================================ */
+    #network-container {
+      position: fixed;
+      inset: 0;
+      z-index: 3;
+    }
+
+    /* --- Shared node base --- */
+    .node {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      border-radius: 50%;
+      background: var(--node-bg);
+      border: 1.5px solid var(--node-border);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      text-decoration: none;
+      color: #c4d4f0;
+      user-select: none;
+    }
+
+    /* --- Float animation (standalone translate — composes with transform) --- */
+    @keyframes float {
+      0%, 100% { translate: 0 0px; }
+      50%       { translate: 0 -7px; }
+    }
+
+    /* ================================================================
+       CENTER NODE
+    ================================================================ */
+    #center-node {
+      width: var(--center-size);
+      height: var(--center-size);
+      transform: translate(-50%, -50%);
+      border-color: rgba(0, 212, 255, 0.45);
+      cursor: default;
+      z-index: 10;
+      animation: center-breathe 3.5s ease-in-out infinite;
+      box-shadow:
+        0 0 0 1px rgba(0, 212, 255, 0.08),
+        0 0 40px rgba(0, 212, 255, 0.10),
+        0 0 80px rgba(124, 58, 237, 0.08),
+        inset 0 0 30px rgba(0, 212, 255, 0.04);
+    }
+
+    @keyframes center-breathe {
+      0%, 100% {
+        translate: 0 0px;
+        box-shadow:
+          0 0 0 1px rgba(0, 212, 255, 0.08),
+          0 0 40px rgba(0, 212, 255, 0.10),
+          0 0 80px rgba(124, 58, 237, 0.08),
+          inset 0 0 30px rgba(0, 212, 255, 0.04);
+      }
+      50% {
+        translate: 0 -5px;
+        box-shadow:
+          0 0 0 1px rgba(0, 212, 255, 0.18),
+          0 0 55px rgba(0, 212, 255, 0.20),
+          0 0 110px rgba(124, 58, 237, 0.14),
+          inset 0 0 30px rgba(0, 212, 255, 0.07);
+      }
+    }
+
+    /* Outer pulse rings */
+    #center-node::before,
+    #center-node::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(0, 212, 255, 0.22);
+      animation: ring-expand 2.8s ease-out infinite;
+      pointer-events: none;
+    }
+    #center-node::before { inset: -12px; animation-delay: 0s; }
+    #center-node::after  { inset: -26px; animation-delay: 0.5s; border-color: rgba(0, 212, 255, 0.10); }
+
+    @keyframes ring-expand {
+      0%   { transform: scale(0.96); opacity: 0.8; }
+      60%  { transform: scale(1.04); opacity: 0.5; }
+      100% { transform: scale(1.08); opacity: 0; }
+    }
+
+    .center-icon {
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .center-label {
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      text-align: center;
+      line-height: 1;
+    }
+
+    /* ================================================================
+       LINK NODES
+    ================================================================ */
+    .link-node {
+      width: var(--node-size);
+      height: var(--node-size);
+      /* JS sets --tx and --ty in px */
+      transform: translate(calc(-50% + var(--tx, 0px)), calc(-50% + var(--ty, 0px)));
+      cursor: pointer;
+      animation: float 4s ease-in-out infinite;
+      transition:
+        transform var(--ease),
+        border-color var(--ease),
+        box-shadow var(--ease);
+    }
+
+    .link-node:hover,
+    .link-node:focus-visible {
+      outline: none;
+      transform: translate(calc(-50% + var(--tx, 0px)), calc(-50% + var(--ty, 0px))) scale(1.14);
+      border-color: var(--node-accent, var(--node-border-h));
+      box-shadow:
+        0 0 22px var(--node-glow, var(--glow-cyan)),
+        0 0 60px var(--node-glow, var(--glow-cyan)),
+        inset 0 0 18px rgba(255, 255, 255, 0.025);
+    }
+
+    .node-icon {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .node-icon svg { width: 100%; height: 100%; }
+
+    .node-label {
+      font-size: 9.5px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      text-align: center;
+      color: rgba(196, 212, 240, 0.75);
+      padding: 0 8px;
+      line-height: 1.3;
+    }
+
+    /* ================================================================
+       MOBILE NAV  (shown ≤ 640px)
+    ================================================================ */
+    #mobile-nav {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 3rem 1.25rem 2.5rem;
+      overflow-y: auto;
+      position: relative;
+      z-index: 10;
+    }
+
+    .mob-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 2.2rem;
+    }
+
+    .mob-logo {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: var(--node-bg);
+      border: 1.5px solid rgba(0, 212, 255, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 30px rgba(0, 212, 255, 0.14), 0 0 70px rgba(124, 58, 237, 0.08);
+    }
+
+    .mob-header h1 {
+      font-size: 1.45rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--cyan);
+    }
+
+    .mob-header p {
+      font-size: 0.7rem;
+      color: rgba(196, 212, 240, 0.4);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    #mobile-nav ul {
+      list-style: none;
+      width: 100%;
+      max-width: 390px;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+    }
+
+    #mobile-nav a {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      padding: 14px 18px;
+      border-radius: 14px;
+      background: var(--node-bg);
+      border: 1.5px solid rgba(0, 212, 255, 0.18);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      color: #c4d4f0;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      transition:
+        border-color 0.25s ease,
+        box-shadow 0.25s ease,
+        transform 0.22s ease;
+    }
+
+    #mobile-nav a:hover,
+    #mobile-nav a:active {
+      border-color: rgba(0, 212, 255, 0.65);
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.12);
+      transform: translateX(5px);
+    }
+
+    .mob-icon {
+      width: 30px;
+      height: 30px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .mob-icon svg { width: 100%; height: 100%; }
+
+    /* ================================================================
+       RESPONSIVE BREAKPOINT
+    ================================================================ */
+    @media (max-width: 640px) {
+      html, body { overflow: auto; }
+
+      #network-svg,
+      #network-container { display: none; }
+
+      #mobile-nav { display: flex; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       LAYER 0 — Particle canvas
+  ============================================================ -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- ============================================================
+       LAYER 1 — SVG connections + pulse dots
+  ============================================================ -->
+  <svg id="network-svg" aria-hidden="true">
+    <line class="conn-line" id="line-youtube"    />
+    <line class="conn-line" id="line-website"    />
+    <line class="conn-line" id="line-newsletter" />
+    <line class="conn-line" id="line-instagram"  />
+    <line class="conn-line" id="line-twitter"    />
+    <line class="conn-line" id="line-skillleap"  />
+
+    <circle class="pulse-dot" id="pulse-youtube"    r="3.5" opacity="0"/>
+    <circle class="pulse-dot" id="pulse-website"    r="3.5" opacity="0"/>
+    <circle class="pulse-dot" id="pulse-newsletter" r="3.5" opacity="0"/>
+    <circle class="pulse-dot" id="pulse-instagram"  r="3.5" opacity="0"/>
+    <circle class="pulse-dot" id="pulse-twitter"    r="3.5" opacity="0"/>
+    <circle class="pulse-dot" id="pulse-skillleap"  r="3.5" opacity="0"/>
+  </svg>
+
+  <!-- ============================================================
+       LAYER 2 — Interactive nodes
+  ============================================================ -->
+  <main id="network-container">
+
+    <!-- ── CENTER NODE ── -->
+    <div id="center-node" class="node" role="img" aria-label="Futurepedia">
+      <div class="center-icon">
+        <!-- Neural-network hub icon -->
+        <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Outer orbit ring -->
+          <circle cx="28" cy="28" r="24" stroke="rgba(0,212,255,0.12)" stroke-width="1" stroke-dasharray="3 5"/>
+          <!-- Spoke nodes -->
+          <circle cx="28" cy="7"  r="3.2" fill="#00d4ff" opacity="0.85"/>
+          <circle cx="46" cy="17" r="2.8" fill="#7c3aed" opacity="0.80"/>
+          <circle cx="46" cy="39" r="2.8" fill="#00d4ff" opacity="0.70"/>
+          <circle cx="28" cy="49" r="3.2" fill="#7c3aed" opacity="0.85"/>
+          <circle cx="10" cy="39" r="2.8" fill="#00d4ff" opacity="0.70"/>
+          <circle cx="10" cy="17" r="2.8" fill="#7c3aed" opacity="0.80"/>
+          <!-- Spoke lines -->
+          <line x1="28" y1="10.2" x2="28" y2="22" stroke="#00d4ff" stroke-width="1" opacity="0.45"/>
+          <line x1="43.6" y1="18.8" x2="33.5" y2="24" stroke="#7c3aed" stroke-width="1" opacity="0.45"/>
+          <line x1="43.6" y1="37.2" x2="33.5" y2="32" stroke="#00d4ff" stroke-width="1" opacity="0.45"/>
+          <line x1="28" y1="45.8" x2="28" y2="34" stroke="#7c3aed" stroke-width="1" opacity="0.45"/>
+          <line x1="12.4" y1="37.2" x2="22.5" y2="32" stroke="#00d4ff" stroke-width="1" opacity="0.45"/>
+          <line x1="12.4" y1="18.8" x2="22.5" y2="24" stroke="#7c3aed" stroke-width="1" opacity="0.45"/>
+          <!-- Hub ring -->
+          <circle cx="28" cy="28" r="7" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.7"/>
+          <!-- Hub core -->
+          <circle cx="28" cy="28" r="3.5" fill="#00d4ff"/>
+          <circle cx="28" cy="28" r="1.5" fill="#ffffff" opacity="0.8"/>
+        </svg>
+      </div>
+      <span class="center-label">Futurepedia</span>
+    </div>
+
+    <!-- ── LINK NODE: YouTube ── -->
+    <a href="#"
+       class="node link-node"
+       id="node-youtube"
+       data-index="0"
+       target="_blank"
+       rel="noopener noreferrer"
+       aria-label="YouTube"
+       style="--node-accent: rgba(255,40,40,0.9); --node-glow: rgba(255,30,30,0.18);">
+      <div class="node-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill="#FF2020"/>
+        </svg>
+      </div>
+      <span class="node-label">YouTube</span>
+    </a>
+
+    <!-- ── LINK NODE: Futurepedia Website ── -->
+    <a href="#"
+       class="node link-node"
+       id="node-website"
+       data-index="1"
+       target="_blank"
+       rel="noopener noreferrer"
+       aria-label="Futurepedia Website"
+       style="--node-accent: rgba(0,212,255,0.9); --node-glow: rgba(0,212,255,0.18);">
+      <div class="node-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" stroke="#00d4ff" stroke-width="1.5"/>
+          <path d="M12 2C9.5 5.5 8 8.6 8 12s1.5 6.5 4 10" stroke="#00d4ff" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M12 2c2.5 3.5 4 6.6 4 10s-1.5 6.5-4 10" stroke="#00d4ff" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M2.5 9h19M2.5 15h19" stroke="#00d4ff" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+        </svg>
+      </div>
+      <span class="node-label">Website</span>
+    </a>
+
+    <!-- ── LINK NODE: Newsletter ── -->
+    <a href="#"
+       class="node link-node"
+       id="node-newsletter"
+       data-index="2"
+       target="_blank"
+       rel="noopener noreferrer"
+       aria-label="Newsletter"
+       style="--node-accent: rgba(168,85,247,0.9); --node-glow: rgba(168,85,247,0.18);">
+      <div class="node-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="4" width="20" height="16" rx="3" stroke="#a855f7" stroke-width="1.5"/>
+          <path d="M2 8.5l8.17 5.5a3 3 0 0 0 3.66 0L22 8.5" stroke="#a855f7" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="node-label">Newsletter</span>
+    </a>
+
+    <!-- ── LINK NODE: Instagram ── -->
+    <a href="#"
+       class="node link-node"
+       id="node-instagram"
+       data-index="3"
+       target="_blank"
+       rel="noopener noreferrer"
+       aria-label="Instagram"
+       style="--node-accent: rgba(225,48,108,0.9); --node-glow: rgba(225,48,108,0.18);">
+      <div class="node-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="ig" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%"   stop-color="#f09433"/>
+              <stop offset="25%"  stop-color="#e6683c"/>
+              <stop offset="50%"  stop-color="#dc2743"/>
+              <stop offset="75%"  stop-color="#cc2366"/>
+              <stop offset="100%" stop-color="#bc1888"/>
+            </linearGradient>
+          </defs>
+          <path fill="url(#ig)" d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+        </svg>
+      </div>
+      <span class="node-label">Instagram</span>
+    </a>
+
+    <!-- ── LINK NODE: Twitter / X ── -->
+    <a href="#"
+       class="node link-node"
+       id="node-twitter"
+       data-index="4"
+       target="_blank"
+       rel="noopener noreferrer"
+       aria-label="Twitter / X"
+       style="--node-accent: rgba(230,230,230,0.9); --node-glow: rgba(200,200,200,0.12);">
+      <div class="node-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.816l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" fill="white"/>
+        </svg>
+      </div>
+      <span class="node-label">Twitter / X</span>
+    </a>
+
+    <!-- ── LINK NODE: Skill Leap AI ── -->
+    <a href="#"
+       class="node link-node"
+       id="node-skillleap"
+       data-index="5"
+       target="_blank"
+       rel="noopener noreferrer"
+       aria-label="Skill Leap AI Course"
+       style="--node-accent: rgba(251,168,30,0.9); --node-glow: rgba(245,158,11,0.18);">
+      <div class="node-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Graduation cap -->
+          <path d="M12 3L23 8.5L12 14L1 8.5L12 3Z" stroke="#f59e0b" stroke-width="1.5" stroke-linejoin="round" fill="rgba(245,158,11,0.12)"/>
+          <path d="M5.5 11V17C5.5 17 8 19.5 12 19.5C16 19.5 18.5 17 18.5 17V11" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M23 8.5V14" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="23" cy="14.5" r="1.2" fill="#f59e0b"/>
+          <!-- AI spark -->
+          <path d="M12 7.5L12.7 9L14.2 9.5L12.7 10L12 11.5L11.3 10L9.8 9.5L11.3 9L12 7.5Z" fill="#f59e0b" opacity="0.8"/>
+        </svg>
+      </div>
+      <span class="node-label">Skill Leap AI</span>
+    </a>
+
+  </main>
+
+  <!-- ============================================================
+       MOBILE NAV — clean vertical list ≤ 640px
+  ============================================================ -->
+  <nav id="mobile-nav" aria-label="Futurepedia links">
+    <div class="mob-header">
+      <div class="mob-logo">
+        <svg viewBox="0 0 56 56" fill="none" width="48" height="48">
+          <circle cx="28" cy="7"  r="3.2" fill="#00d4ff" opacity="0.85"/>
+          <circle cx="46" cy="17" r="2.8" fill="#7c3aed" opacity="0.80"/>
+          <circle cx="46" cy="39" r="2.8" fill="#00d4ff" opacity="0.70"/>
+          <circle cx="28" cy="49" r="3.2" fill="#7c3aed" opacity="0.85"/>
+          <circle cx="10" cy="39" r="2.8" fill="#00d4ff" opacity="0.70"/>
+          <circle cx="10" cy="17" r="2.8" fill="#7c3aed" opacity="0.80"/>
+          <line x1="28" y1="10.2" x2="28" y2="22" stroke="#00d4ff" stroke-width="1" opacity="0.5"/>
+          <line x1="43.6" y1="18.8" x2="33.5" y2="24" stroke="#7c3aed" stroke-width="1" opacity="0.5"/>
+          <line x1="43.6" y1="37.2" x2="33.5" y2="32" stroke="#00d4ff" stroke-width="1" opacity="0.5"/>
+          <line x1="28" y1="45.8" x2="28" y2="34" stroke="#7c3aed" stroke-width="1" opacity="0.5"/>
+          <line x1="12.4" y1="37.2" x2="22.5" y2="32" stroke="#00d4ff" stroke-width="1" opacity="0.5"/>
+          <line x1="12.4" y1="18.8" x2="22.5" y2="24" stroke="#7c3aed" stroke-width="1" opacity="0.5"/>
+          <circle cx="28" cy="28" r="7" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.65"/>
+          <circle cx="28" cy="28" r="3.5" fill="#00d4ff"/>
+          <circle cx="28" cy="28" r="1.5" fill="#fff" opacity="0.8"/>
+        </svg>
+      </div>
+      <h1>Futurepedia</h1>
+      <p>Your Links</p>
+    </div>
+
+    <ul>
+      <li>
+        <a href="#" target="_blank" rel="noopener noreferrer">
+          <span class="mob-icon">
+            <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill="#FF2020"/></svg>
+          </span>
+          YouTube
+        </a>
+      </li>
+      <li>
+        <a href="#" target="_blank" rel="noopener noreferrer">
+          <span class="mob-icon">
+            <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#00d4ff" stroke-width="1.5"/><path d="M12 2C9.5 5.5 8 8.6 8 12s1.5 6.5 4 10" stroke="#00d4ff" stroke-width="1.5" stroke-linecap="round"/><path d="M12 2c2.5 3.5 4 6.6 4 10s-1.5 6.5-4 10" stroke="#00d4ff" stroke-width="1.5" stroke-linecap="round"/><path d="M2.5 9h19M2.5 15h19" stroke="#00d4ff" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/></svg>
+          </span>
+          Futurepedia Website
+        </a>
+      </li>
+      <li>
+        <a href="#" target="_blank" rel="noopener noreferrer">
+          <span class="mob-icon">
+            <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="3" stroke="#a855f7" stroke-width="1.5"/><path d="M2 8.5l8.17 5.5a3 3 0 0 0 3.66 0L22 8.5" stroke="#a855f7" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </span>
+          Newsletter
+        </a>
+      </li>
+      <li>
+        <a href="#" target="_blank" rel="noopener noreferrer">
+          <span class="mob-icon">
+            <svg viewBox="0 0 24 24"><defs><linearGradient id="ig2" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f09433"/><stop offset="50%" stop-color="#dc2743"/><stop offset="100%" stop-color="#bc1888"/></linearGradient></defs><path fill="url(#ig2)" d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          </span>
+          Instagram
+        </a>
+      </li>
+      <li>
+        <a href="#" target="_blank" rel="noopener noreferrer">
+          <span class="mob-icon">
+            <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.816l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" fill="white"/></svg>
+          </span>
+          Twitter / X
+        </a>
+      </li>
+      <li>
+        <a href="#" target="_blank" rel="noopener noreferrer">
+          <span class="mob-icon">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 3L23 8.5L12 14L1 8.5L12 3Z" stroke="#f59e0b" stroke-width="1.5" stroke-linejoin="round" fill="rgba(245,158,11,0.12)"/><path d="M5.5 11V17C5.5 17 8 19.5 12 19.5C16 19.5 18.5 17 18.5 17V11" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/><path d="M23 8.5V14" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/><circle cx="23" cy="14.5" r="1.2" fill="#f59e0b"/></svg>
+          </span>
+          Skill Leap AI
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- ============================================================
+       JAVASCRIPT
+  ============================================================ -->
+  <script>
+    'use strict';
+
+    /* ── CONFIG ─────────────────────────────────────────────────── */
+    const NODES = [
+      { id: 'youtube',    label: 'YouTube'         },
+      { id: 'website',    label: 'Website'         },
+      { id: 'newsletter', label: 'Newsletter'      },
+      { id: 'instagram',  label: 'Instagram'       },
+      { id: 'twitter',    label: 'Twitter'         },
+      { id: 'skillleap',  label: 'Skill Leap AI'  },
+    ];
+    const ANGLE_OFFSET = -Math.PI / 2; // start at 12 o'clock
+
+    /* orbit radius scales with viewport, capped so nodes never clip */
+    function orbitRadius() {
+      return Math.min(Math.min(window.innerWidth, window.innerHeight) * 0.315, 270);
+    }
+
+    /* center world coords — updated by positionNodes() */
+    let centerX = 0, centerY = 0;
+
+    /* ── NODE POSITIONING ───────────────────────────────────────── */
+    function positionNodes() {
+      centerX = window.innerWidth  / 2;
+      centerY = window.innerHeight / 2;
+      const R = orbitRadius();
+      const N = NODES.length;
+
+      NODES.forEach((nd, i) => {
+        const angle = ANGLE_OFFSET + (2 * Math.PI * i) / N;
+        const tx    = Math.cos(angle) * R;
+        const ty    = Math.sin(angle) * R;
+
+        const el = document.getElementById(`node-${nd.id}`);
+        if (!el) return;
+
+        el.style.setProperty('--tx', `${tx}px`);
+        el.style.setProperty('--ty', `${ty}px`);
+        el.style.animationDelay = `${(i * 0.55).toFixed(2)}s`;
+
+        nd._wx = centerX + tx;   // world X
+        nd._wy = centerY + ty;   // world Y
+      });
+
+      updateLines();
+    }
+
+    /* ── SVG LINES ──────────────────────────────────────────────── */
+    function updateLines() {
+      NODES.forEach(nd => {
+        const ln = document.getElementById(`line-${nd.id}`);
+        if (!ln || nd._wx === undefined) return;
+        ln.setAttribute('x1', centerX);
+        ln.setAttribute('y1', centerY);
+        ln.setAttribute('x2', nd._wx);
+        ln.setAttribute('y2', nd._wy);
+      });
+    }
+
+    /* ── PULSE ANIMATION ────────────────────────────────────────── */
+    const pulses = NODES.map((nd, i) => ({
+      nd,
+      t:         (i / NODES.length),           // staggered start
+      speed:     0.0033 + i * 0.00015,         // slight speed variation
+      dir:       1,                             // 1 = outward, -1 = inward
+    }));
+
+    function tickPulses() {
+      pulses.forEach(p => {
+        p.t += p.speed * p.dir;
+        if (p.t >= 1) { p.t = 1; p.dir = -1; }
+        if (p.t <= 0) { p.t = 0; p.dir =  1; }
+
+        const dot = document.getElementById(`pulse-${p.nd.id}`);
+        if (!dot || p.nd._wx === undefined) return;
+
+        dot.setAttribute('cx', centerX + (p.nd._wx - centerX) * p.t);
+        dot.setAttribute('cy', centerY + (p.nd._wy - centerY) * p.t);
+        // sine fade: emerges from center, dissolves at node
+        dot.style.opacity = (Math.sin(p.t * Math.PI) * 0.88).toFixed(3);
+      });
+
+      requestAnimationFrame(tickPulses);
+    }
+
+    /* ── HOVER — highlight matching line ────────────────────────── */
+    function setupHover() {
+      NODES.forEach(nd => {
+        const el = document.getElementById(`node-${nd.id}`);
+        const ln = document.getElementById(`line-${nd.id}`);
+        if (!el || !ln) return;
+        el.addEventListener('mouseenter', () => ln.classList.add('active'));
+        el.addEventListener('mouseleave', () => ln.classList.remove('active'));
+        el.addEventListener('focus',      () => ln.classList.add('active'));
+        el.addEventListener('blur',       () => ln.classList.remove('active'));
+      });
+    }
+
+    /* ── BACKGROUND PARTICLE CANVAS ─────────────────────────────── */
+    function initParticles() {
+      const canvas = document.getElementById('bg-canvas');
+      const ctx    = canvas.getContext('2d');
+      const N      = 58;
+      const LINK   = 125;
+
+      const resize = () => {
+        canvas.width  = window.innerWidth;
+        canvas.height = window.innerHeight;
+      };
+      resize();
+      window.addEventListener('resize', resize);
+
+      const pts = Array.from({ length: N }, () => ({
+        x:  Math.random() * canvas.width,
+        y:  Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.22,
+        vy: (Math.random() - 0.5) * 0.22,
+        r:  Math.random() * 1.1 + 0.4,
+      }));
+
+      const draw = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (const p of pts) {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0)              p.x = canvas.width;
+          if (p.x > canvas.width)   p.x = 0;
+          if (p.y < 0)              p.y = canvas.height;
+          if (p.y > canvas.height)  p.y = 0;
+        }
+
+        /* connections */
+        for (let i = 0; i < pts.length; i++) {
+          for (let j = i + 1; j < pts.length; j++) {
+            const dx   = pts[i].x - pts[j].x;
+            const dy   = pts[i].y - pts[j].y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < LINK) {
+              ctx.strokeStyle = `rgba(0,212,255,${((1 - dist / LINK) * 0.1).toFixed(3)})`;
+              ctx.lineWidth   = 0.5;
+              ctx.beginPath();
+              ctx.moveTo(pts[i].x, pts[i].y);
+              ctx.lineTo(pts[j].x, pts[j].y);
+              ctx.stroke();
+            }
+          }
+        }
+
+        /* dots */
+        ctx.fillStyle = 'rgba(0,212,255,0.32)';
+        for (const p of pts) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        requestAnimationFrame(draw);
+      };
+
+      draw();
+    }
+
+    /* ── INIT ───────────────────────────────────────────────────── */
+    document.addEventListener('DOMContentLoaded', () => {
+      initParticles();
+      positionNodes();
+      setupHover();
+      requestAnimationFrame(tickPulses);
+
+      /* debounced resize */
+      let rTimer;
+      window.addEventListener('resize', () => {
+        clearTimeout(rTimer);
+        rTimer = setTimeout(positionNodes, 80);
+      });
+    });
+  </script>
+</body>
+</html>
