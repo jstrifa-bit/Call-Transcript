@@ -27,6 +27,14 @@ Or start it via the Claude Code preview using `.claude/launch.json`:
 
 To enable Claude-powered analysis instead of the local heuristic: copy `.env.example` to `.env`, set `ANTHROPIC_API_KEY=sk-ant-...`, restart the server. The server reads `.env` on startup and selects the engine per request based on whether the key is present.
 
+### Git / repository
+
+Remote: `https://github.com/jstrifa-bit/Call-Transcript.git` (branch `main`).
+
+`.gitignore` is **load-bearing for security**: it excludes `.env` (real Anthropic key), `.env.disabled`, `.claude/settings.local.json`, and the temp PDF-extraction files. Run `git check-ignore -v .env` before any commit if you've touched gitignore — leaking the key is the worst-case failure mode here. Never `git add -f .env`.
+
+Windows + Git: line-ending warnings (`LF will be replaced by CRLF`) are expected and harmless. There is no `.gitattributes` yet; if cross-OS contributors join, add one (`* text=auto`, `*.ps1 text eol=crlf`).
+
 ### Smoke tests (no test suite — use the 3 inlined samples)
 
 The Care Team case-study PDF supplies 3 transcripts that exercise different SOP combinations. They're inlined in `sop-recommender.html` (the `SAMPLES` object) and accessible via the **Load Sample** dropdown. Their expected dispositions:
@@ -160,5 +168,6 @@ The purple "Email content detected — stripped N lines…" notice only fires wh
 | `crm.json`  | Mock CRM records (Age, Sex, Location, Height, Weight, Employer) for the 3 sample patients. Edit `name_aliases` to control which transcripts match. |
 | `sop-recommender.html` | Single-page UI. Contains the 3 sample transcripts inline. |
 | `.env.example` | Template — copy to `.env` and add `ANTHROPIC_API_KEY` to enable Claude mode. |
+| `.gitignore` | Excludes `.env`, `.claude/settings.local.json`, temp PDF files. Don't loosen without auditing. |
 | `.claude/launch.json` | Preview server configs (carrum-sop, futurepedia-bio). |
 | `serve.ps1`, `index.html` | Legacy Futurepedia Bio project — unrelated. |
